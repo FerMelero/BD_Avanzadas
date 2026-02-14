@@ -5,34 +5,42 @@ import psycopg
 from config import load_config
 
 
-def insert_vendor(vendor_name: str) -> int:
+def insert_profesor(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -> int:
     """Insert a vendor and return vendor_id."""
-    sql = "INSERT INTO vendors(vendor_name) VALUES (%s) RETURNING vendor_id;"
+    sql = "INSERT INTO profesores(nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s);"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (vendor_name,))
-            vendor_id = cur.fetchone()[0]
-    return int(vendor_id)
+            cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni))
+    return True
 
-
-def insert_part(part_name: str) -> int:
-    """Insert a part and return part_id."""
-    sql = "INSERT INTO parts(part_name) VALUES (%s) RETURNING part_id;"
+def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -> int:
+    """Insert a vendor and return vendor_id."""
+    sql = "INSERT INTO alumnos(nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s);"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (part_name,))
-            part_id = cur.fetchone()[0]
-    return int(part_id)
+            cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni))
+    return True
 
-
-def assign_part_to_vendor(vendor_id: int, part_id: int) -> None:
-    sql = "INSERT INTO vendor_parts(vendor_id, part_id) VALUES (%s, %s);"
+def insert_cursos(nombre_curso: str, id_profesor: int) -> int:
+    """Insert a vendor and return vendor_id."""
+    sql = "INSERT INTO cursos(nombre_curso, id_profesor) VALUES (%s, %s);"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (vendor_id, part_id))
+            cur.execute(sql, (nombre_curso, id_profesor))
+    return True
+
+def insert_matriculas(id_alumno: int, id_profesor: int) -> int:
+    """Insert a vendor and return vendor_id."""
+    sql = "INSERT INTO matriculas(nombre_curso, id_profesor) VALUES (%s, %s);"
+    cfg = load_config()
+    with psycopg.connect(**cfg) as conn:
+        with conn.cursor() as cur:
+            cur.execute(sql, (id_alumno, id_profesor))
+    return True
+
 
 
 if __name__ == "__main__":

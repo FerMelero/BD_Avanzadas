@@ -7,7 +7,51 @@ from config import load_config
 
 
 
-DDL = ('CREATE TABLE IF NOT EXISTS vendors (\n    vendor_id SERIAL PRIMARY KEY,\n    vendor_name VARCHAR(255) NOT NULL\n);', 'CREATE TABLE IF NOT EXISTS parts (\n    part_id SERIAL PRIMARY KEY,\n    part_name VARCHAR(255) NOT NULL\n);', 'CREATE TABLE IF NOT EXISTS part_drawings (\n    part_id INTEGER PRIMARY KEY,\n    file_extension VARCHAR(5) NOT NULL,\n    drawing_data BYTEA NOT NULL,\n    FOREIGN KEY (part_id)\n        REFERENCES parts (part_id)\n        ON UPDATE CASCADE\n        ON DELETE CASCADE\n);', 'CREATE TABLE IF NOT EXISTS vendor_parts (\n    vendor_id INTEGER NOT NULL,\n    part_id INTEGER NOT NULL,\n    PRIMARY KEY (vendor_id, part_id),\n    FOREIGN KEY (vendor_id)\n        REFERENCES vendors (vendor_id)\n        ON UPDATE CASCADE\n        ON DELETE CASCADE,\n    FOREIGN KEY (part_id)\n        REFERENCES parts (part_id)\n        ON UPDATE CASCADE\n        ON DELETE CASCADE\n);')
+DDL = (
+    # Profesores
+    '''CREATE TABLE IF NOT EXISTS profesores (
+        id_profesor SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        apellido VARCHAR(100) NOT NULL,
+        fecha_nacimiento DATE NOT NULL,
+        dni VARCHAR(20) NOT NULL UNIQUE
+    );''',
+
+    # Alumnos
+    '''CREATE TABLE IF NOT EXISTS alumnos (
+        id_alumno SERIAL PRIMARY KEY,
+        nombre VARCHAR(100) NOT NULL,
+        apellido VARCHAR(100) NOT NULL,
+        fecha_nacimiento DATE NOT NULL,
+        dni VARCHAR(20) NOT NULL UNIQUE
+    );''',
+
+    # Cursos (1 profesor por curso)
+    '''CREATE TABLE IF NOT EXISTS cursos (
+        id_curso SERIAL PRIMARY KEY,
+        nombre_curso VARCHAR(100) NOT NULL,
+        id_profesor INTEGER NOT NULL,
+        FOREIGN KEY (id_profesor)
+            REFERENCES profesores (id_profesor)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
+    );''',
+
+    # Matrículas (N:M entre alumnos y cursos)
+    '''CREATE TABLE IF NOT EXISTS matriculas (
+        id_alumno INTEGER NOT NULL,
+        id_curso INTEGER NOT NULL,
+        PRIMARY KEY (id_alumno, id_curso),
+        FOREIGN KEY (id_alumno)
+            REFERENCES alumnos (id_alumno)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE,
+        FOREIGN KEY (id_curso)
+            REFERENCES cursos (id_curso)
+            ON UPDATE CASCADE
+            ON DELETE CASCADE
+    );'''
+)
 
 
 def create_tables() -> None:

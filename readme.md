@@ -1,67 +1,61 @@
-# Conectarse a la base de datos
-+ Configurar database.ini
-+ Ejecutar python connect.py
-# Crear tablas en la base de datos
-+ Ejecutar python create_tables.py
-# Insertar valores
-+ python insert.py
-# Actualizar valores 
-+ python update.py
-# Transacciones
-+ python transaction.py
-# Query data
-+ python query.py
-# Funciones SQL
-Con PSQL creamos la función
+# README – Estructura de la Base de Datos
 
-CREATE OR REPLACE FUNCTION get_parts_by_vendor(id INTEGER)
-  RETURNS TABLE(part_id INTEGER, part_name VARCHAR) AS
-$$
-BEGIN
- RETURN QUERY
+## Tablas
 
- SELECT parts.part_id, parts.part_name
- FROM parts
- INNER JOIN vendor_parts on vendor_parts.part_id = parts.part_id
- WHERE vendor_id = id;
+### 1. Profesores
+| Columna          | Tipo de dato    | Restricciones                 |
+|-----------------|----------------|-------------------------------|
+| id_profesor      | SERIAL         | PRIMARY KEY                   |
+| nombre           | VARCHAR(100)   | NOT NULL                      |
+| apellido         | VARCHAR(100)   | NOT NULL                      |
+| fecha_nacimiento | DATE           | NOT NULL                      |
+| dni              | VARCHAR(20)    | NOT NULL, UNIQUE              |
 
-END; $$
+**Descripción:**  
+Cada profesor tiene un identificador único (`id_profesor`) y datos personales.  
 
-LANGUAGE plpgsql;
+---
 
-+ python get_parts_by_vendor.py
+### 2. Alumnos
+| Columna          | Tipo de dato    | Restricciones                 |
+|-----------------|----------------|-------------------------------|
+| id_alumno        | SERIAL         | PRIMARY KEY                   |
+| nombre           | VARCHAR(100)   | NOT NULL                      |
+| apellido         | VARCHAR(100)   | NOT NULL                      |
+| fecha_nacimiento | DATE           | NOT NULL                      |
+| dni              | VARCHAR(20)    | NOT NULL, UNIQUE              |
 
-# Creamos procedimientos
+**Descripción:**  
+Cada alumno tiene un identificador único (`id_alumno`) y datos personales.  
 
-CREATE OR REPLACE PROCEDURE add_new_part(
-	new_part_name varchar,
-	new_vendor_name varchar
-) 
-AS $$
-DECLARE
-	v_part_id INT;
-	v_vendor_id INT;
-BEGIN
-	-- insert into the parts table
-	INSERT INTO parts(part_name) 
-	VALUES(new_part_name) 
-	RETURNING part_id INTO v_part_id;
-	
-	-- insert a new vendor
-	INSERT INTO vendors(vendor_name)
-	VALUES(new_vendor_name)
-	RETURNING vendor_id INTO v_vendor_id;
-	
-	-- insert into vendor_parts
-	INSERT INTO vendor_parts(part_id, vendor_id)
-	VALUEs(v_part_id,v_vendor_id);
-	
-END;
-$$
-LANGUAGE PLPGSQL;
+---
 
-+ python call_stored_procedure.py
-# BINARIOS
-+ python write_blob.py
-# BORRADO
-python delete.py
+### 3. Cursos
+| Columna      | Tipo de dato    | Restricciones                                         |
+|-------------|----------------|-------------------------------------------------------|
+| id_curso     | SERIAL         | PRIMARY KEY                                         |
+| nombre_curso | VARCHAR(100)   | NOT NULL                                            |
+| id_profesor  | INTEGER        | NOT NULL, FOREIGN KEY → profesores(id_profesor)    |
+
+**Relaciones:**  
+- Cada curso tiene **1 profesor** asignado (`1:N` con profesores).  
+- Al borrar un profesor, los cursos asociados se eliminan (`ON DELETE CASCADE`).  
+
+---
+
+### 4. Matrículas
+| Columna     | Tipo de dato    | Restricciones                                      |
+|------------|----------------|---------------------------------------------------|
+| id_alumno  | INTEGER        | NOT NULL, FOREIGN KEY → alumnos(id_alumno)      |
+| id_curso   | INTEGER        | NOT NULL, FOREIGN KEY → cursos(id_curso)        |
+|            |                | PRIMARY KEY (id_alumno, id_curso)              |
+
+**Relaciones:**  
+- Representa la relación **N:M** entre alumnos y cursos.  
+- Cada alumno puede estar en varios cursos y cada curso puede tener varios alumnos.  
+- Al borrar un alumno o curso, se eliminan sus matrículas (`ON DELETE CASCADE`).  
+
+---
+
+### Diagrama de relaciones (ERD)
+

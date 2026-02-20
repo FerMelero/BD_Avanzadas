@@ -56,24 +56,31 @@ def fake_alumno():
         "fecha_nacimiento": fake.date_between(start_date='-30y', end_date='-15y'),
         "dni": fake.nif()
     }
-
+# los parámetros del servidor no se tocan para obtener mejores consultas sino más rápido
 def fake_curso(profesores_id):
-    materias = [
-        "Programación",
-        "Bases de Datos",
-        "Redes",
-        "Sistemas Operativos",
-        "Inteligencia Artificial"
-    ]
-        
     return {
-        "nombre_curso": f"{random.choice(materias)}",
-        "id_profesor": random.choice(profesores_id)
-    }
+        "nombre_curso": fake.word(),
+        "id_alumno": random.choice(range(1,10)) # este range se modifica en función de los alumnos que hay para no isnertar elementos no existentes
+    } # TO DO: terminar el archivo
 
 def fake_matricula():
     return
 
+def final_insert_alumnos(val):
+    print("Insertando ALUMNOS")
+    for _ in range(val): 
+        alumno = fake_alumno() 
+        insert_profesor( alumno["nombre"], alumno["apellido"], alumno["fecha_nacimiento"], alumno["dni"] ) 
+    print("Listo.")
+
+def final_insert_profesores(val):
+    print("Insertando PROFESORES")
+    for _ in range(val): 
+        profesor = fake_profesor() 
+        insert_profesor( profesor["nombre"], profesor["apellido"], profesor["fecha_nacimiento"], profesor["dni"] ) 
+    print("Listo.")
 
 if __name__ == "__main__":
-    print(f"Inserted vendor_id={v_id}, part_id={p_id} and assigned relation.")
+    final_insert_alumnos(10)
+    final_insert_profesores(10)
+

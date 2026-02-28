@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Cursos{% endblock %}
+
+{% block content %}
+  <h1>Cursos Disponibles</h1>
+  <table border="1">
+    <thead>
+      <tr>
+          <th>ID</th>
+          <th>Nombre del Curso</th>
+          <th>ID Profesor Asignado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for curso in cursos %}
+      <tr>
+          <td>{{ curso.id_curso }}</td>
+          <td>{{ curso.nombre_curso }}</td>
+          <td>{{ curso.id_profesor }}</td>
+      </tr>
+      {% else %}
+      <tr><td colspan="3">No hay cursos creados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock %}

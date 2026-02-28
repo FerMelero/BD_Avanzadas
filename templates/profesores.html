@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Profesores{% endblock %}
+
+{% block content %}
+  <h1>Listado de Profesores</h1>
+  <ul class="list">
+    {% for profe in profesores %}
+    <li>
+      <strong>ID: {{ profe.id_profesor }}</strong> — 
+      {{ profe.nombre }} {{ profe.apellido }}
+      <div>
+        <small>DNI: {{ profe.dni }} | Nacimiento: {{ profe.fecha_nacimiento }}</small>
+      </div>
+    </li>
+    {% else %}
+    <li class="empty">No hay profesores registrados.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

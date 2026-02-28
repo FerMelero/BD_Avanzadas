@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Lista de Alumnos{% endblock %}
+
+{% block content %}
+  <h1>Alumnos Registrados</h1>
+  
+  <ul class="list">
+    {% for alumno in alumnos %}
+    <li>
+      <strong>#{{ alumno.id_alumno }}</strong> — 
+      {{ alumno.nombre }} {{ alumno.apellidos }}
+      
+      <div class="detalles">
+        <span><strong>DNI:</strong> {{ alumno.dni }}</span> | 
+        <span><strong>Nacimiento:</strong> {{ alumno.fecha_nacimiento }}</span>
+      </div>
+
+      <a href="{{ url_for('ver_alumno', id_alumno=alumno.id_alumno) }}">Ver ficha</a>
+    </li>
+    {% else %}
+    <li class="empty">No hay alumnos en la base de datos.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

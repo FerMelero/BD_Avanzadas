@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Matrículas{% endblock %}
+
+{% block content %}
+  <h1>Relación Alumnos - Cursos</h1>
+  <ul>
+    {% for m in matriculas %}
+    <li>
+      Alumno ID: <strong>{{ m.id_alumno }}</strong> está inscrito en el Curso ID: <strong>{{ m.id_curso }}</strong>
+    </li>
+    {% else %}
+    <li>No hay matrículas registradas.</li>
+    {% endfor %}
+  </ul>
+{% endblock %}

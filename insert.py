@@ -14,6 +14,7 @@ Inserción de datos
 ==================
 '''
 
+# insertamos profesor y devolvemos los ids para su futuro uso
 def insert_profesor(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -> int:
     sql = "INSERT INTO profesores(nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s) RETURNING id_profesor;"
     cfg = load_config()
@@ -22,6 +23,7 @@ def insert_profesor(nombre: str, apellido: str, fecha_nacimiento: str, dni: str)
             cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
+# insertamos alumno y devolvemos los ids para su futuro uso
 def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -> int:
     sql = "INSERT INTO alumnos(nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s) RETURNING id_alumno;"
     cfg = load_config()
@@ -30,6 +32,7 @@ def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -
             cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
+# insertamos curso y devolvemos los ids para su futuro uso
 def insert_cursos(nombre_curso: str, id_profesor: int) -> int:
     sql = "INSERT INTO cursos(nombre_curso, id_profesor) VALUES (%s, %s) RETURNING id_curso;"
     cfg = load_config()
@@ -38,6 +41,7 @@ def insert_cursos(nombre_curso: str, id_profesor: int) -> int:
             cur.execute(sql, (nombre_curso, id_profesor))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
+# no hace falta devolver id porque es la relación entre 2 tablas
 def insert_matriculas(id_curso: int, id_alumno: int) -> int:
     sql = "INSERT INTO matriculas(id_curso, id_alumno) VALUES (%s, %s);"
     cfg = load_config()
@@ -74,6 +78,7 @@ def fake_curso(profesores_ids):
         "nombre_curso": fake.word(),
         "id_profesor": random.choice(profesores_ids)
     }
+# no añadimos fake_matricula porque es la relación entre 2 tablas
 
 '''
 ======================================
@@ -83,7 +88,7 @@ Funciones finales de inserción de datos
 
 def final_insert_alumnos(val):
     print("Insertando ALUMNOS")
-    alumnos_IDS=[]
+    alumnos_IDS=[] # almacenar IDS temporalmente
     for _ in range(val): 
         alumno = fake_alumno() 
         alumno_id = insert_alumno( alumno["nombre"], alumno["apellido"], alumno["fecha_nacimiento"], alumno["dni"] ) # con esta inserción devuelve el ID gracias a la función anterior
@@ -93,7 +98,7 @@ def final_insert_alumnos(val):
 
 def final_insert_profesores(val):
     print("Insertando PROFESORES")
-    profesores_ids=[]
+    profesores_ids=[] # almacenar IDS temporalmente
     for _ in range(val): 
         profesor = fake_profesor() 
         profesor_id = insert_profesor( profesor["nombre"], profesor["apellido"], profesor["fecha_nacimiento"], profesor["dni"] ) 
@@ -103,7 +108,7 @@ def final_insert_profesores(val):
 
 def final_insert_cursos(val, profesores_ids):
     print("Insertando CURSOS")
-    cursos_ids = []
+    cursos_ids = [] # almacenar IDS temporalmente
 
     for _ in range(val):
         curso = fake_curso(profesores_ids)
@@ -113,14 +118,14 @@ def final_insert_cursos(val, profesores_ids):
         )
         cursos_ids.append(curso_id)
 
-    print("Cursos insertados.")
+    print("Listo.")
     return cursos_ids
 
 def final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=5):
     print("Insertando MATRICULAS")
 
     for curso_id in cursos_ids:
-        alumnos_curso = random.sample(alumnos_ids, min(alumnos_por_curso, len(alumnos_ids)))
+        alumnos_curso = random.sample(alumnos_ids, min(alumnos_por_curso, len(alumnos_ids))) # controlar la inserción
 
         for alumno_id in alumnos_curso:
             insert_matriculas(curso_id, alumno_id)
@@ -134,9 +139,8 @@ Main
 '''
 
 if __name__ == "__main__":
-    profesores_ids = final_insert_profesores(10)  # guardamos IDs
-    alumnos_ids = final_insert_alumnos(20)        # guardamos IDs
+    profesores_ids = final_insert_profesores(10)
+    alumnos_ids = final_insert_alumnos(20)
     cursos_ids = final_insert_cursos(10, profesores_ids)
-
     final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=5)
 

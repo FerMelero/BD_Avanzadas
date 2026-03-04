@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}AlumnoE{% endblock %}
+
+{% block content %}
+{% if alumno %}
+<ul class="list">
+  <li>
+    <strong>#{{ alumno.id_alumno }}</strong> — 
+    {{ alumno.nombre }} {{ alumno.apellido }}
+    <div class="detalles">
+      <span><strong>DNI:</strong> {{ alumno.dni }}</span> | 
+      <span><strong>Nacimiento:</strong> {{ alumno.fecha_nacimiento }}</span>
+    </div>
+  </li>
+</ul>
+{% else %}
+<p>No hay alumno con ese ID.</p>
+{% endif %}
+{% endblock %}

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template
 
-from models.db import get_alumnos, get_alumno_by_id
+from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -22,8 +22,10 @@ def list_():
 def view_alumno(id_alumno):
     print("ID recibido:", id_alumno) # depuración
     alumno = get_alumno_by_id(id_alumno) # pasar un ID a la función y pasarlo para render
+    curso = get_cursos_by_alumno(id_alumno)
     return render_template(
         "idAlumno.html",
-        alumno=alumno
+        alumno=alumno,
+        cursos = curso
     )
 

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Profesor{% endblock %}
+
+{% block content %}
+
+{% if profesor %}
+<ul class="list">
+  <li>
+    <strong>#{{ profesor.id_profesor }}</strong> — 
+    {{ profesor.nombre }} {{ profesor.apellido }}
+
+    <div class="detalles">
+      <span><strong>DNI:</strong> {{ profesor.dni }}</span> | 
+      <span><strong>Nacimiento:</strong> {{ profesor.fecha_nacimiento }}</span>
+    </div>
+  </li>
+</ul>
+
+<h3>Cursos que imparte</h3>
+
+<ul>
+{% for curso in cursos %}
+    <li>{{ curso.nombre_curso }},
+        {{curso.id_curso}}
+    </li>
+{% else %}
+    <li>No imparte cursos</li>
+{% endfor %}
+</ul>
+
+{% else %}
+<p>No hay profesor con ese ID.</p>
+{% endif %}
+
+{% endblock %}

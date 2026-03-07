@@ -54,3 +54,47 @@ def get_alumno_by_id(id_alumno): # pasamos un ID específico
             if row:
                 return Alumno(*row) # ahora solo se devuelve un objeto que es una fila
             return None
+
+
+def get_cursos_by_alumno(id_alumno):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT c.id_curso, c.nombre_curso, c.id_profesor
+                FROM cursos c
+                JOIN matriculas m ON c.id_curso = m.id_curso
+                WHERE m.id_alumno = %s;
+                """,
+                (id_alumno,)
+            )
+
+            rows = cur.fetchall()
+            print("Cursos obtenidos:", rows)
+
+            return [Cursos(*r) for r in rows]
+
+
+def get_profesor_by_id(id_profesor): # pasamos un ID específico
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+            "SELECT p.id_profesor, p.nombre, p.apellido, p.fecha_nacimiento, p.dni FROM profesores p WHERE p.id_profesor=%s;",
+            (id_profesor,) # debemos poner %s(id_profesor, ) para que seleccione bien el ID
+        )
+            row = cur.fetchone()
+            print("Fila obtenida:", row) # depuración
+            if row:
+                return Profesor(*row) # ahora solo se devuelve un objeto que es una fila
+            return None
+
+def get_cursos_by_profesor(id_profesor): # pasamos un ID específico
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+            "SELECT id_curso, nombre_curso, id_profesor FROM cursos WHERE id_profesor=%s;",
+            (id_profesor,) # debemos poner %s(id_profesor, ) para que seleccione bien el ID
+        )
+            rows = cur.fetchall()
+            print("Fila obtenida:", rows) # depuración
+            return [Cursos(*r) for r in rows]

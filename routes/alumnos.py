@@ -1,9 +1,9 @@
 """Rutas del recurso parts (listado y dibujo binario)."""
 from __future__ import annotations
 
-from flask import Blueprint, Response, abort, render_template
+from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno
+from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -29,3 +29,14 @@ def view_alumno(id_alumno):
         cursos = curso
     )
 
+@alumnos_bp.route("/nuevo", methods=["GET", "POST"])
+def new_alumno():
+    if request.method == "POST":
+        nombre = request.form["nombre_alumno"]
+        apellidos = request.form["apellidos_alumno"]
+        fecha_nacimiento_alumno = request.form["fecha_nacimiento_alumno"]
+        dni = request.form["dni_alumno"]
+        nuevo_alumno = crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni)
+        return redirect(url_for("alumnos.view_alumno", id_alumno=nuevo_alumno))
+    
+    return render_template("crearAlumno.html")

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template
 
-from models.db import get_cursos
+from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -18,3 +18,15 @@ def list_():
         cursos=cursos
     )
 
+@cursos_bp.route("/<int:id_curso>")
+def view_curso(id_curso):
+    print("ID recibido:", id_curso)
+
+    curso = get_cursos_by_id(id_curso)
+    alumnos = get_alumnos_by_curso(id_curso)
+
+    return render_template(
+        "idCurso.html",
+        curso=curso,
+        alumnos=alumnos
+    )

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Alumno{% endblock %}
+
+{% block content %}
+<form method="POST" action="/alumnos/nuevo">
+    <label>Nombre del alumno:</label>
+    <input type="text" name="nombre_alumno" required>
+    
+    <label>Apellidos del alumno:</label>
+    <input type="text" name="apellidos_alumno" required>
+
+    <label>Fecha de nacimiento del alumno:</label>
+    <input type="datetime" name="fecha_nacimiento_alumno" required>
+
+    <label>DNI del alumno:</label>
+    <input type="text" name="dni_alumno" required>
+    
+    <button type="submit">Crear curso</button>
+</form>
+{% endblock %}

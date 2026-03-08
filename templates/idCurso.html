@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Curso{% endblock %}
+
+{% block content %}
+{% if curso %}
+    <h2>{{ curso.nombre_curso }}</h2>
+    <h3>Alumnos matriculados</h3>
+    <ul>
+    {% for a in alumnos %}
+        <li>{{ a.nombre }} {{ a.apellido }}</li>
+    {% else %}
+        <li>No hay alumnos matriculados</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p>No existe ese curso.</p>
+{% endif %}
+{% endblock %}

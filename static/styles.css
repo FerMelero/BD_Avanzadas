@@ -87,3 +87,10 @@ h1 {
   color: var(--muted);
   font-style: italic;
 }
+
+.mensaje-error {
+    color: red;
+    background-color: #ffe6e6;
+    padding: 8px;
+    border-radius: 4px;
+}

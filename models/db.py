@@ -133,3 +133,27 @@ def crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni):
             )
             id_alumno = cur.fetchone()[0]
     return id_alumno
+
+def crear_matricula(id_alumno, id_curso):
+    curso = get_cursos_by_id(id_curso)
+    alumno = get_alumno_by_id(id_alumno)
+
+    if not curso:
+        return "Curso no encontrado"
+    
+    if not alumno:
+        return "Alumno no encontrado"
+
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT 1 FROM matriculas WHERE id_alumno=%s AND id_curso=%s;", (id_alumno, id_curso)
+            )
+            if cur.fetchone():
+                return "El alumno ya está matriculado en este curso"
+
+            cur.execute(
+                "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+                    (id_alumno, id_curso)
+                )
+    return True

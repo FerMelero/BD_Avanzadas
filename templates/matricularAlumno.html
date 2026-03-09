@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Nueva Matricula{% endblock %}
+
+{% block content %}
+<h2>Matricular alumno</h2>
+
+{% if error %}
+<div class="mensaje-error">{{ error }}</div>
+{% endif %}
+
+<form method="POST" action="/matriculas/nuevo">
+    <label>Identificador del alumno (ID):</label>
+    <input type="text" name="id_alumno" required>
+    
+    <label>Identificador del curso (ID):</label>
+    <input type="text" name="id_curso" required>
+    
+    <button type="submit">Matricular alumno</button>
+</form>
+{% endblock %}

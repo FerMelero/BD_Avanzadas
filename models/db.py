@@ -157,3 +157,33 @@ def crear_matricula(id_alumno, id_curso):
                     (id_alumno, id_curso)
                 )
     return True
+
+def demo_transaccion_rollback():
+    conn = get_connection()
+
+    try:
+        cur = conn.cursor()
+
+        # insert válido
+        cur.execute(
+            "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+            (1, 1)
+        )
+
+        # este insert falla
+        cur.execute(
+            "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+            (1, 9999)
+        )
+
+        conn.commit()
+
+    except Exception as e:
+        conn.rollback()
+        print("Rollback ejecutado:", e)
+
+    finally:
+        cur.close()
+        conn.close()
+
+        

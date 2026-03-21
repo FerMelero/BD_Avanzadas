@@ -186,4 +186,43 @@ def demo_transaccion_rollback():
         cur.close()
         conn.close()
 
-        
+def cursos_alumnos_by_profesor(id_profesor):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    COUNT(DISTINCT c.id_curso) AS num_cursos,
+                    COUNT(DISTINCT m.id_alumno) AS num_alumnos
+                FROM cursos c
+                LEFT JOIN matriculas m ON c.id_curso = m.id_curso
+                WHERE c.id_profesor = %s;
+            """, (id_profesor,))
+
+            row = cur.fetchone()
+            return {
+                "num_cursos": row[0],
+                "num_alumnos_distintos": row[1]
+            }
+
+def resumen_alumno(id_alumno):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT 
+                    COUNT(DISTINCT m.id_curso) AS num_cursos,
+                    COUNT(DISTINCT c.id_profesor) AS num_profesores
+                FROM matriculas m
+                JOIN cursos c ON m.id_curso = c.id_curso
+                WHERE m.id_alumno = %s;
+            """, (id_alumno,))
+
+            row = cur.fetchone()
+            return {
+                "num_cursos": row[0],
+                "num_profesores_distintos": row[1]
+            }
+
+# si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
+if __name__ == "__main__":
+    print(cursos_alumnos_by_profesor(20))
+    print(resumen_alumno(20))

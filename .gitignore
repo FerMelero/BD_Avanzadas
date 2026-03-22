@@ -1,3 +1,4 @@
 database.ini
 __pycache__/
 venv/
+bd_sqlite/*.db

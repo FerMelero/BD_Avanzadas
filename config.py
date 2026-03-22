@@ -1,6 +1,16 @@
 from __future__ import annotations
 
 from configparser import ConfigParser
+from pathlib import Path
+
+# SQLite DB for auth: separate from PostgreSQL, lives in instance/
+_SQLITE_DIR = Path(__file__).resolve().parent / "bd_sqlite"
+
+
+def get_sqlite_db_path() -> Path:
+    """Path to the SQLite database used for authentication (users/passwords)."""
+    _SQLITE_DIR.mkdir(parents=True, exist_ok=True)
+    return _SQLITE_DIR / "usuarios.db"
 
 
 def load_config(filename: str = "database.ini", section: str = "postgresql") -> dict[str, str]:

@@ -10,9 +10,10 @@ from flask import Blueprint, redirect, render_template, request, session, url_fo
 
 from models.auth_db import verify_password
 
-auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
+auth_bp = Blueprint("auth", __name__, url_prefix="/auth") # registramos la ruta de autenticación
 
 
+# ruta login
 @auth_bp.route("/login", methods=["GET", "POST"])
 def login():
     """Show login form (GET) or validate credentials and redirect (POST)."""
@@ -22,6 +23,7 @@ def login():
     username = (request.form.get("username") or "").strip()
     password = request.form.get("password") or ""
 
+    # verificar que usuario y contraseña están puetsos y existen
     if not username or not password:
         return render_template(
             "auth/login.html",
@@ -41,6 +43,7 @@ def login():
     return redirect(url_for("main.index"))
 
 
+# ruta logout
 @auth_bp.route("/logout", methods=["POST"])
 def logout():
     """Clear session and redirect to login."""

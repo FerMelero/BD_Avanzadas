@@ -8,13 +8,14 @@ def create_app() -> Flask:
     app.config["ENV"] = "development"
     app.config["SECRET_KEY"] = "dev-change-in-production"
 
-    app.register_blueprint(auth_bp)
+    app.register_blueprint(auth_bp) # registrar la ruta
     app.register_blueprint(main_bp)
     app.register_blueprint(alumnos_bp)
     app.register_blueprint(profesores_bp)
     app.register_blueprint(cursos_bp)
     app.register_blueprint(matriculas_bp)
 
+    # comprobar que hay login
     @app.before_request
     def require_login():
         if request.endpoint in (None, "auth.login", "static"):

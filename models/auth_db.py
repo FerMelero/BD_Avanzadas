@@ -16,6 +16,7 @@ import bcrypt
 from config import get_sqlite_db_path
 
 
+# conexion a la BD sqlite
 @contextmanager
 def get_sqlite_connection():
     """Yield a connection to the auth SQLite database."""
@@ -28,7 +29,7 @@ def get_sqlite_connection():
     finally:
         conn.close()
 
-
+# buscar al usuario
 def get_user_by_username(username: str) -> sqlite3.Row | None:
     """Return the user row for the given username, or None if not found."""
     with get_sqlite_connection() as conn:

@@ -24,21 +24,21 @@ def insert_profesor(nombre: str, apellido: str, fecha_nacimiento: str, dni: str)
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
 # insertamos alumno y devolvemos los ids para su futuro uso
-def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str) -> int:
-    sql = "INSERT INTO alumnos(nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s) RETURNING id_alumno;"
+def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str, dinero: float) -> int:
+    sql = "INSERT INTO alumnos(nombre, apellido, fecha_nacimiento, dni, dinero) VALUES (%s, %s, %s, %s, %s) RETURNING id_alumno;"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni))
+            cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni, dinero))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
 # insertamos curso y devolvemos los ids para su futuro uso
-def insert_cursos(nombre_curso: str, id_profesor: int) -> int:
-    sql = "INSERT INTO cursos(nombre_curso, id_profesor) VALUES (%s, %s) RETURNING id_curso;"
+def insert_cursos(nombre_curso: str, id_profesor: int, capacidad_max: int, precio: float) -> int:
+    sql = "INSERT INTO cursos(nombre_curso, id_profesor, capacidad_max, precio) VALUES (%s, %s, %s, %s) RETURNING id_curso;"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (nombre_curso, id_profesor))
+            cur.execute(sql, (nombre_curso, id_profesor, capacidad_max, precio))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
 # no hace falta devolver id porque es la relación entre 2 tablas
@@ -69,14 +69,17 @@ def fake_alumno():
         "nombre": fake.first_name(),
         "apellido": fake.last_name(),
         "fecha_nacimiento": fake.date_between(start_date='-30y', end_date='-15y'),
-        "dni": fake.nif()
+        "dni": fake.nif(),
+        "dinero": round(random.uniform(100, 2000), 2)
     }
 # los parámetros del servidor no se tocan para obtener mejores consultas sino más rápido
 
 def fake_curso(profesores_ids):
     return {
         "nombre_curso": fake.word(),
-        "id_profesor": random.choice(profesores_ids)
+        "id_profesor": random.choice(profesores_ids),
+        "capacidad_max": random.randint(15, 40),
+        "precio": round(random.uniform(50, 400), 2)
     }
 # no añadimos fake_matricula porque es la relación entre 2 tablas
 
@@ -91,7 +94,7 @@ def final_insert_alumnos(val):
     alumnos_IDS=[] # almacenar IDS temporalmente
     for _ in range(val): 
         alumno = fake_alumno() 
-        alumno_id = insert_alumno( alumno["nombre"], alumno["apellido"], alumno["fecha_nacimiento"], alumno["dni"] ) # con esta inserción devuelve el ID gracias a la función anterior
+        alumno_id = insert_alumno( alumno["nombre"], alumno["apellido"], alumno["fecha_nacimiento"], alumno["dni"], alumno["dinero"] ) # con esta inserción devuelve el ID gracias a la función anterior
         alumnos_IDS.append(alumno_id)
     print("Listo.")
     return alumnos_IDS
@@ -114,7 +117,9 @@ def final_insert_cursos(val, profesores_ids):
         curso = fake_curso(profesores_ids)
         curso_id = insert_cursos(
             curso["nombre_curso"],
-            curso["id_profesor"]
+            curso["id_profesor"],
+            curso["capacidad_max"],
+            curso["precio"]
         )
         cursos_ids.append(curso_id)
 
@@ -139,8 +144,7 @@ Main
 '''
 
 if __name__ == "__main__":
-    profesores_ids = final_insert_profesores(10)
-    alumnos_ids = final_insert_alumnos(20)
-    cursos_ids = final_insert_cursos(10, profesores_ids)
-    final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=5)
-
+    profesores_ids = final_insert_profesores(50)
+    alumnos_ids = final_insert_alumnos(1000)
+    cursos_ids = final_insert_cursos(100, profesores_ids)
+    final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=30)

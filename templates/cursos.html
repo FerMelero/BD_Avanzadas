@@ -9,6 +9,8 @@
           <th>ID</th>
           <th>Nombre del Curso</th>
           <th>ID Profesor Asignado</th>
+          <th>Precio del curso</th>
+          <th>Capacidad máxima del curso</th>
       </tr>
     </thead>
     <tbody>
@@ -17,6 +19,8 @@
           <td>{{ curso.id_curso }}</td>
           <td>{{ curso.nombre_curso }}</td>
           <td>{{ curso.id_profesor }}</td>
+          <td>{{ curso.precio }}</td>
+          <td>{{ curso.capacidad_max }}</td>
       </tr>
       {% else %}
       <tr><td colspan="3">No hay cursos creados.</td></tr>

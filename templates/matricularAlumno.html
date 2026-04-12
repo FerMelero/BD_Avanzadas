@@ -1,21 +1,30 @@
 {% extends "base.html" %}
-
-{% block title %}Nueva Matricula{% endblock %}
-
 {% block content %}
-<h2>Matricular alumno</h2>
-
-{% if error %}
-<div class="mensaje-error">{{ error }}</div>
-{% endif %}
-
 <form method="POST" action="/matriculas/nuevo">
-    <label>Identificador del alumno (ID):</label>
-    <input type="text" name="id_alumno" required>
-    
-    <label>Identificador del curso (ID):</label>
-    <input type="text" name="id_curso" required>
-    
+    <div>
+        <label>Alumno:</label>
+        <select name="id_alumno" required>
+            <option value="" disabled selected>-- Selecciona alumno --</option>
+            {% for alu in alumnos %}
+                <option value="{{ alu.id_alumno }}">
+                    {{ alu.nombre }} {{ alu.apellido }} (Saldo: {{ alu.dinero }}€)
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div>
+        <label>Curso:</label>
+        <select name="id_curso" required>
+            <option value="" disabled selected>-- Selecciona curso --</option>
+            {% for cur in cursos %}
+                <option value="{{ cur.id_curso }}">
+                    {{ cur.nombre_curso }}
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
     <button type="submit">Matricular alumno</button>
 </form>
 {% endblock %}

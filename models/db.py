@@ -14,7 +14,7 @@ def get_alumnos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dni FROM alumnos ORDER BY id_alumno;"
+                "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dinero, dni FROM alumnos ORDER BY id_alumno;"
             )
             return [Alumno(*r) for r in cur.fetchall()]
 
@@ -22,7 +22,7 @@ def get_profesores():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_profesor, nombre, apellido, fecha_nacimiento, DNI FROM profesores ORDER BY id_profesor;"
+                "SELECT id_profesor, nombre, apellido, fecha_nacimiento, dni FROM profesores ORDER BY id_profesor;"
             )
             return [Profesor(*r) for r in cur.fetchall()]
 
@@ -30,7 +30,7 @@ def get_cursos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_curso, nombre_curso, id_profesor FROM cursos ORDER BY id_curso;"
+                "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos ORDER BY id_curso;"
             )
             return [Cursos(*r) for r in cur.fetchall()]
 
@@ -46,7 +46,7 @@ def get_alumno_by_id(id_alumno): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dni FROM alumnos WHERE id_alumno=%s;",
+            "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dinero ,dni FROM alumnos WHERE id_alumno=%s;",
             (id_alumno,) # debemos poner %s(id_alumno, ) para que seleccione bien el ID
         )
             row = cur.fetchone()
@@ -61,7 +61,7 @@ def get_cursos_by_alumno(id_alumno):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT c.id_curso, c.nombre_curso, c.id_profesor
+                SELECT c.id_curso, c.nombre_curso, c.id_profesor, c.precio, c.capacidad_max
                 FROM cursos c
                 JOIN matriculas m ON c.id_curso = m.id_curso
                 WHERE m.id_alumno = %s;
@@ -104,7 +104,7 @@ def get_cursos_by_id(id_curso):
         with conn.cursor() as cur:
             print("Buscando curso con id:", id_curso)
             cur.execute(
-            "SELECT id_curso, nombre_curso, id_profesor FROM cursos WHERE id_curso=%s;",
+            "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE id_curso=%s;",
             (id_curso,) # debemos poner %s(id_curso, ) para que seleccione bien el ID
         )
             row = cur.fetchone()
@@ -134,29 +134,58 @@ def crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni):
             id_alumno = cur.fetchone()[0]
     return id_alumno
 
-def crear_matricula(id_alumno, id_curso):
-    curso = get_cursos_by_id(id_curso)
-    alumno = get_alumno_by_id(id_alumno)
-
-    if not curso:
-        return "Curso no encontrado"
-    
-    if not alumno:
-        return "Alumno no encontrado"
-
+def crear_matricula(id_alumno: int, id_curso: int):
     with get_connection() as conn:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM matriculas WHERE id_alumno=%s AND id_curso=%s;", (id_alumno, id_curso)
-            )
-            if cur.fetchone():
-                return "El alumno ya está matriculado en este curso"
+            try:
+                # primero sacamos los datos del alumno
+                cur.execute("SELECT nombre, dinero FROM alumnos WHERE id_alumno=%s FOR UPDATE;", 
+                (id_alumno,))
+                alumno = cur.fetchone() # recuperar el dato
 
-            cur.execute(
-                "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+                if not alumno:
+                    return "Alumno no encontrado"
+                
+                nombre_alumno, dinero = alumno # si existe el alumno, guardamos y seguimos
+
+                # ahora sacamos los datos del curso
+                cur.execute("SELECT nombre_curso, precio, capacidad_max FROM cursos WHERE id_curso=%s FOR UPDATE;", (id_curso,))
+                curso = cur.fetchone()
+
+                if not curso:
+                    return "Curso no encontrado"
+
+                nombre_curso, precio_curso, capacidad_max = curso
+
+                # verificamos que el alumno no esté matriculado ya
+                cur.execute("SELECT 1 FROM matriculas WHERE id_alumno=%s AND id_curso=%s;", (id_alumno, id_curso,))
+                if cur.fetchone(): # si obtenemos resultado de que está matriculado
+                    return f"EL alumno {nombre_alumno} ya está matriculado en {nombre_curso}"
+                
+                # comprobar que el curso tiene plazas
+                cur.execute("SELECT COUNT(*) FROM matriculas WHERE id_curso=%s;", (id_curso,))
+                actuales = cur.fetchone()[0]
+                if actuales >= capacidad_max:
+                    return f"El curso {nombre_curso} está lleno ({capacidad_max} plazas máx.)"
+
+                # verificar que el alumno tiene el saldo suficiente
+                if dinero < precio_curso:
+                    return f"Saldo insuficiente. EL alumno {nombre_alumno} tiene {dinero}€ y el curso son {precio_curso}€"
+                
+                # una vez comprobado todo acutalizamos su saldo
+                cur.execute(
+                    "UPDATE alumnos SET dinero = dinero - %s WHERE id_alumno = %s;", 
+                    (precio_curso, id_alumno)
+                )
+                
+                # insertamos finalmente la matrícula
+                cur.execute(
+                    "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
                     (id_alumno, id_curso)
                 )
-    return True
+                return True
+            except Exception as e:
+                return f"Error: {str(e)}"
 
 def demo_transaccion_rollback():
     conn = get_connection()

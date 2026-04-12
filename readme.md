@@ -116,7 +116,7 @@ La aplicación estará disponible en: http://localhost:5000
 ## 6. Credenciales de Acceso
 ### 6.1. Acceso a Base de Datos
 
-    Usuario: user_practicas
+    Usuario: "pon tu usuario"
 
     Configuración: Definida en database.ini y archivo .env.
 

@@ -1,3 +1,1 @@
-Al crear la base de datos, debemos decidir si los datos con las Foreign Keys se añaden a la vez dependiendo
-de la tabla. Por ejemplo, la tabla profesores y alumnos pueden tener insercions de datos en paralelo pero 
-las tablas cursos y matrículas depende la forma de comprobar y añadir pueden usarse en paralelo o no.
+BUG QUE EN ALUMNOS CAMBIA DNI POR DINERO

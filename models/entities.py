@@ -10,6 +10,7 @@ class Alumno:
     apellido: str
     fecha_nacimiento: date
     dni: str
+    dinero: float
 
 
 @dataclass(frozen=True)
@@ -25,6 +26,8 @@ class Cursos:
     id_curso: int
     nombre_curso: str
     id_profesor: int
+    precio: float
+    capacidad_max: int
 
 @dataclass(frozen=True)
 class Matriculas:

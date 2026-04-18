@@ -75,6 +75,17 @@ CREATE TABLE IF NOT EXISTS audit_alumnos(
 );''',
 
 '''
+CREATE TABLE IF NOT EXISTS audit_cursos(
+    operacion      CHAR(1) NOT NULL,
+    stamp          TIMESTAMP NOT NULL,
+    user_id        VARCHAR(100) NOT NULL,
+    nombre_curso   VARCHAR(100) NOT NULL,
+    id_curso       INTEGER,
+    precio_curso   FLOAT
+);
+''',
+
+'''
 CREATE OR REPLACE FUNCTION fn_audit_profesores()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -121,10 +132,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- 2. Crear el trigger
 CREATE TRIGGER tr_audit_alumnos
 AFTER INSERT OR UPDATE OR DELETE ON alumnos
 FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();
+''',
+
+'''
+CREATE OR REPLACE FUNCTION fn_audit_cursos()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
+        VALUES ('D', now(), current_user, OLD.nombre_curso, OLD.id_curso, OLD.precio);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
+        VALUES ('U', now(), current_user, NEW.nombre_curso, NEW.id_curso, NEW.precio);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
+        VALUES ('I', now(), current_user, NEW.nombre_curso, NEW.id_curso, NEW.precio);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_audit_cursos
+AFTER INSERT OR UPDATE OR DELETE ON cursos
+FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();
 '''
 
 )

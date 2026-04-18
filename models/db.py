@@ -117,7 +117,7 @@ def get_alumnos_by_curso(id_curso):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT a.id_alumno, a.nombre, a.apellido, a.fecha_nacimiento, a.dni FROM alumnos a JOIN matriculas m ON a.id_alumno = m.id_alumno WHERE m.id_curso=%s;",
+            "SELECT a.id_alumno, a.nombre, a.apellido, a.fecha_nacimiento, a.dni, a.dinero FROM alumnos a JOIN matriculas m ON a.id_alumno = m.id_alumno WHERE m.id_curso=%s;",
             (id_curso,) # debemos poner %s(id_curso, ) para que seleccione bien el ID
         )
             rows = cur.fetchall()
@@ -269,6 +269,54 @@ def view_audit_alumnos():
                 """)
             rows = cur.fetchall()
             return rows
+
+def view_audit_profesores():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor
+                FROM audit_profesores
+
+                """)
+            rows = cur.fetchall()
+            return rows
+        
+
+def crear_curso(nombre_curso, id_profesor, precio, capacidad_max):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute("""
+                    INSERT INTO cursos (nombre_curso, id_profesor, precio, capacidad_max) 
+                    VALUES (%s, %s, %s, %s) RETURNING id_curso;
+                """, (nombre_curso, id_profesor, precio, capacidad_max))
+                
+                id_curso = cur.fetchone()[0]
+                conn.commit()
+                return id_curso
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al crear curso: {e}") 
+                return None
+
+def crear_profesor(nombre, apellido, fecha_nac, dni):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(""" INSERT INTO profesores (nombre, apellido, fecha_nacimiento, dni) 
+                    VALUES (%s, %s, %s, %s) RETURNING id_profesor;                
+            """, (nombre, apellido, fecha_nac, dni))
+                
+                id_profesor = cur.fetchone()[0]
+                conn.commit()
+                return id_profesor
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al crear profesor: {e}") 
+                return None
+
+
 
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":

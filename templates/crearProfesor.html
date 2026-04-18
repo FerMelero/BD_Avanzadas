@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Profesor{% endblock %}
+
+{% block content %}
+<h1>Registrar Nuevo Profesor</h1>
+
+<form method="POST" action="{{ url_for('profesores.new_profesor') }}" style="max-width: 500px;">
+    <div style="margin-bottom: 15px;">
+        <label>Nombre:</label><br>
+        <input type="text" name="nombre_profesor" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Apellidos:</label><br>
+        <input type="text" name="apellido_profesor" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Fecha y Hora de Nacimiento:</label><br>
+        <input type="datetime-local" name="fecha_nacimiento" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>DNI:</label><br>
+        <input type="text" name="dni_profesor" required style="width: 100%;">
+    </div>
+
+    <button type="submit" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+        Guardar Profesor
+    </button>
+</form>
+{% endblock %}

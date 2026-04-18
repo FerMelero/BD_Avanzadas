@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Nuevo Curso{% endblock %}
+
+{% block content %}
+<h1>Crear Nuevo Curso</h1>
+
+<form method="POST" action="{{ url_for('cursos.new_curso') }}" style="max-width: 500px;">
+    <div style="margin-bottom: 15px;">
+        <label>Nombre del Curso / Asignatura:</label><br>
+        <input type="text" name="nombre_curso" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Profesor Asignado:</label><br>
+        <select name="id_profesor" required style="width: 100%;">
+            <option value="">-- Selecciona un profesor --</option>
+            {% for p in profesores %}
+                <option value="{{ p.id_profesor }}">{{ p.nombre }} {{ p.apellido }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Capacidad Máxima (Plazas):</label><br>
+        <input type="number" name="capacidad_max" min="1" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Precio del Curso (€):</label><br>
+        <input type="number" name="precio" min="0" required style="width: 100%;">
+    </div>
+
+    <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; cursor: pointer;">
+        Guardar Curso
+    </button>
+    <a href="{{ url_for('cursos.list_') }}" style="margin-left: 10px;">Cancelar</a>
+</form>
+{% endblock %}

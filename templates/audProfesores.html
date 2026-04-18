@@ -10,30 +10,30 @@
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario DB</th>
-            <th>Nombre Alumno</th>
-            <th>ID Alumno</th>
-            <th>DNI Alumno</th>
+            <th>Nombre Profesor</th>
+            <th>ID Profesor</th>
+            <th>DNI Profesor</th>
         </tr>
     </thead>
     <tbody>
-        {% for a in aud %}
+        {% for p in aud %}
         <tr>
             <td style="font-weight: bold; text-align: center;">
-                {% if a[0] == 'I' %}
+                {% if p[0] == 'I' %}
                     <span style="color: green;">INSERCIÓN</span>
-                {% elif a[0] == 'U' %}
+                {% elif p[0] == 'U' %}
                     <span style="color: blue;">EDICIÓN</span>
-                {% elif a[0] == 'D' %}
+                {% elif p[0] == 'D' %}
                     <span style="color: red;">ELIMINACIÓN</span>
                 {% else %}
-                    {{ a[0] }}
+                    {{ p[0] }}
                 {% endif %}
             </td>
-            <td>{{ a[1].strftime('%d/%m/%Y %H:%M:%S') }}</td>
-            <td><code>{{ a[2] }}</code></td>
-            <td>{{ a[3] }}</td>
-            <td>{{ a[4] }}</td>
-            <td>{{ a[5] }}</td>
+            <td>{{ p[1].strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><code>{{ p[2] }}</code></td>
+            <td>{{ p[3] }}</td>
+            <td>{{ p[4] }}</td>
+            <td>{{ p[5] }}</td>
         </tr>
         {% else %}
         <tr>

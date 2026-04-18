@@ -11,29 +11,29 @@
             <th>Fecha y Hora</th>
             <th>Usuario DB</th>
             <th>Nombre Alumno</th>
-            <th>ID Alumno</th>
             <th>DNI Alumno</th>
+            <th>ID Alumno</th>
         </tr>
     </thead>
     <tbody>
         {% for a in aud %}
         <tr>
             <td style="font-weight: bold; text-align: center;">
-                {% if a[0] == 'I' %}
+                {% if a.operacion == 'I' %}
                     <span style="color: green;">INSERCIÓN</span>
-                {% elif a[0] == 'U' %}
+                {% elif a.operacion == 'U' %}
                     <span style="color: blue;">EDICIÓN</span>
-                {% elif a[0] == 'D' %}
+                {% elif a.operacion == 'D' %}
                     <span style="color: red;">ELIMINACIÓN</span>
                 {% else %}
-                    {{ a[0] }}
+                    {{ a.operacion }}
                 {% endif %}
             </td>
-            <td>{{ a[1].strftime('%d/%m/%Y %H:%M:%S') }}</td>
-            <td><code>{{ a[2] }}</code></td>
-            <td>{{ a[3] }}</td>
-            <td>{{ a[4] }}</td>
-            <td>{{ a[5] }}</td>
+            <td>{{ a.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><code>{{ a.user_id }}</code></td>
+            <td>{{ a.nombre }}</td>
+            <td>{{ a.dni }}</td>
+            <td>{{ a.id_alumno }}</td>
         </tr>
         {% else %}
         <tr>
@@ -42,5 +42,4 @@
         {% endfor %}
     </tbody>
 </table>
-
 {% endblock %}

@@ -33,3 +33,30 @@ class Cursos:
 class Matriculas:
     id_alumno: int
     id_curso: int
+
+@dataclass(frozen=True)
+class AuditCurso:
+    operacion: str
+    stamp: date
+    user_id: str
+    nombre_curso: str
+    id_curso: int
+    precio_curso: float
+
+@dataclass(frozen=True)
+class AuditProfesor:
+    operacion: str
+    stamp: date
+    user_id: str
+    nombre: str
+    id_profesor: int
+    dni: str
+
+@dataclass(frozen=True)
+class AuditAlumno:
+    operacion: str
+    stamp: date
+    user_id: str
+    nombre: str
+    id_alumno: int
+    dni: str

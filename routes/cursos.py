@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores
+from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -50,3 +50,24 @@ def new_curso():
             return "Error al crear el curso en la base de datos", 500
     
     return render_template("crearCurso.html", profesores=profesores)
+
+@cursos_bp.route("/modificar/<int:id_curso>", methods=["GET", "POST"])
+def edit_curso(id_curso):
+    if request.method == "POST":
+        nombre = request.form["nombre_curso"]
+        id_prof = request.form["id_profesor"]
+        precio = float(request.form["precio"])
+        capacidad = int(request.form["capacidad_max"])
+
+        if modificar_curso(id_curso, nombre, id_prof, precio, capacidad):
+            return redirect(url_for("cursos.view_curso", id_curso = id_curso))
+        else:
+            return "Error al actualizar curso", 500
+
+    curso_obj = get_cursos_by_id(id_curso)
+    profs = get_profesores()
+    
+    if not curso_obj:
+        return "Curso no encontrado", 404
+        
+    return render_template("modificarCurso.html", curso=curso_obj, profesores=profs)

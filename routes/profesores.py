@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor,view_audit_profesores, crear_profesor
+from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor,view_audit_profesores, crear_profesor, modificar_profesor
 
 
 profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
@@ -50,3 +50,21 @@ def new_profesor():
             return "Error al crear el profesor", 500
 
     return render_template("crearProfesor.html")
+
+@profesores_bp.route("/modificar/<int:id_profesor>", methods=["GET", "POST"])
+def edit_profesor(id_profesor):
+    profesor = get_profesor_by_id(id_profesor)
+    if request.method == "POST":
+        nombre = request.form["nombre"]
+        apellido = request.form["apellido"]
+        fecha_nacimiento = request.form["fecha_nacimiento"]
+        dni = request.form["dni"]
+
+        mod_profesor = modificar_profesor(id_profesor, nombre, apellido, fecha_nacimiento, dni)
+
+        if mod_profesor:
+            return redirect(url_for("profesores.view_profesor", id_profesor=id_profesor))
+        else:
+            return "Error al mdoficiar el profesor en la base de datos", 500
+    
+    return render_template("modificarProfesor.html", profesor = profesor)

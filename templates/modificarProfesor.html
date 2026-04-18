@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Editar profesor{% endblock %}
+
+{% block content %}
+<h1>Editar profesor: {{ profesor.nombre }}</h1>
+
+<form method="POST" action="{{ url_for('profesores.edit_profesor', id_profesor=profesor.id_profesor) }}" style="max-width: 500px;">
+    <input type="hidden" name="id_profesor" value="{{ profesor.id_profesor }}">
+
+    <div style="margin-bottom: 15px;">
+        <label>Nombre:</label><br>
+        <input type="text" name="nombre" value="{{ profesor.nombre }}" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Apellido:</label><br>
+        <input type="text" name="apellido" value="{{ profesor.apellido }}" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>DNI:</label><br>
+        <input type="text" name="dni" value="{{ profesor.dni }}" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Fecha de Nacimiento:</label><br>
+        <input type="date" name="fecha_nacimiento" value="{{ profesor.fecha_nacimiento }}" required style="width: 100%;">
+    </div>
+
+
+    <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+        Actualizar profesor
+    </button>
+    <a href="{{ url_for('profesores.list_') }}" style="margin-left: 10px;">Cancelar</a>
+</form>
+{% endblock %}

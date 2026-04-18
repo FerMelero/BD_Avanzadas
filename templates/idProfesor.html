@@ -20,8 +20,10 @@
 
 <ul>
 {% for curso in cursos %}
-    <li>{{ curso.nombre_curso }},
-        {{curso.id_curso}}
+    <li>
+        <strong>{{ curso.nombre_curso }}</strong> (ID: {{ curso.id_curso }}) — 
+        <span>Precio: {{ curso.precio }}€</span> | 
+        <span>Capacidad: {{ curso.capacidad_max }} alumnos</span>
     </li>
 {% else %}
     <li>No imparte cursos</li>

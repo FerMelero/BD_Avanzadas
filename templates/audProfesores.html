@@ -1,8 +1,8 @@
 {% extends "base.html" %}
-{% block title %}Auditoria Alumnos{% endblock %}
+{% block title %}Auditoria Profesores{% endblock %}
 
 {% block content %}
-<h1>Historial de Cambios: Alumnos</h1>
+<h1>Historial de Cambios: Profesores</h1>
 
 <table border="1" style="width:100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
     <thead>
@@ -10,37 +10,36 @@
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario DB</th>
-            <th>Nombre Profesor</th>
+            <th>Nombre</th>
+            <th>DNI</th>
             <th>ID Profesor</th>
-            <th>DNI Profesor</th>
         </tr>
     </thead>
     <tbody>
         {% for p in aud %}
         <tr>
             <td style="font-weight: bold; text-align: center;">
-                {% if p[0] == 'I' %}
+                {% if p.operacion == 'I' %}
                     <span style="color: green;">INSERCIÓN</span>
-                {% elif p[0] == 'U' %}
+                {% elif p.operacion == 'U' %}
                     <span style="color: blue;">EDICIÓN</span>
-                {% elif p[0] == 'D' %}
+                {% elif p.operacion == 'D' %}
                     <span style="color: red;">ELIMINACIÓN</span>
                 {% else %}
-                    {{ p[0] }}
+                    {{ p.operacion }}
                 {% endif %}
             </td>
-            <td>{{ p[1].strftime('%d/%m/%Y %H:%M:%S') }}</td>
-            <td><code>{{ p[2] }}</code></td>
-            <td>{{ p[3] }}</td>
-            <td>{{ p[4] }}</td>
-            <td>{{ p[5] }}</td>
+            <td>{{ p.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><code>{{ p.user_id }}</code></td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.dni }}</td>
+            <td>{{ p.id_profesor }}</td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center;">No hay registros en la auditoría.</td>
+            <td colspan="7" style="text-align: center;">No hay registros en la auditoría.</td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
 {% endblock %}

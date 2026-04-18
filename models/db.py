@@ -4,7 +4,7 @@ import psycopg
 
 from config import load_config
 
-from models.entities import Alumno, Profesor, Matriculas, Cursos
+from models.entities import Alumno, Profesor, Matriculas, Cursos, AuditProfesor, AuditAlumno
 
 def get_connection():
     cfg = load_config()
@@ -92,7 +92,7 @@ def get_cursos_by_profesor(id_profesor): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT id_curso, nombre_curso, id_profesor FROM cursos WHERE id_profesor=%s;",
+            "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE id_profesor=%s;",
             (id_profesor,) # debemos poner %s(id_profesor, ) para que seleccione bien el ID
         )
             rows = cur.fetchall()
@@ -259,28 +259,25 @@ def resumen_alumno(id_alumno):
                 "num_profesores_distintos": row[1]
             }
 
+def view_audit_profesores():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+    SELECT operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor 
+    FROM audit_profesores 
+    ORDER BY stamp DESC;
+""")
+            return [AuditProfesor(*r) for r in cur.fetchall()]
+
 def view_audit_alumnos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno
-                FROM audit_alumnos
-
-                """)
-            rows = cur.fetchall()
-            return rows
-
-def view_audit_profesores():
-    with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute("""
-                SELECT operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor
-                FROM audit_profesores
-
-                """)
-            rows = cur.fetchall()
-            return rows
-        
+                FROM audit_alumnos 
+                ORDER BY stamp DESC;
+            """)
+            return [AuditAlumno(*r) for r in cur.fetchall()]
 
 def crear_curso(nombre_curso, id_profesor, precio, capacidad_max):
     with get_connection() as conn:
@@ -316,7 +313,56 @@ def crear_profesor(nombre, apellido, fecha_nac, dni):
                 print(f"Error al crear profesor: {e}") 
                 return None
 
+def modificar_alumno(id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(
+                    "UPDATE alumnos SET nombre = %s, apellido = %s, fecha_nacimiento = %s, dni = %s, dinero = %s WHERE id_alumno = %s;", 
+                    (nombre, apellido, fecha_nacimiento, dni, dinero, id_alumno,)
+                )
+                conn.commit()
+                return True
 
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al mdoficar alumno: {e}") 
+                return None
+
+def modificar_profesor(id_profesor, nombre, apellido, fecha_nacimiento, dni):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(
+                    "UPDATE profesores SET nombre = %s, apellido = %s, fecha_nacimiento = %s, dni = %s WHERE id_profesor = %s;", 
+                    (nombre, apellido, fecha_nacimiento, dni, id_profesor,)
+                )
+                conn.commit()
+                return True
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al mdoficar profesor: {e}") 
+                return None
+
+
+
+
+def modificar_curso(id_curso, nombre, id_profesor, precio, capacidad):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute("""
+                    UPDATE cursos 
+                    SET nombre_curso = %s, id_profesor = %s, precio = %s, capacidad_max = %s
+                    WHERE id_curso = %s;
+                """, (nombre, id_profesor, precio, capacidad, id_curso))
+                conn.commit()
+                return True
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al modificar curso: {e}")
+                return False
 
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":

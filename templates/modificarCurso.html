@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block title %}Modificar Curso{% endblock %}
+
+{% block content %}
+<h1>Modificar Curso: {{ curso.nombre_curso }}</h1>
+
+<form method="POST" action="{{ url_for('cursos.edit_curso', id_curso=curso.id_curso) }}" style="max-width: 500px;">
+    
+    <div style="margin-bottom: 15px;">
+        <label>Nombre del Curso:</label><br>
+        <input type="text" name="nombre_curso" value="{{ curso.nombre_curso }}" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Profesor Asignado:</label><br>
+        <select name="id_profesor" required style="width: 100%; padding: 5px;">
+            {% for p in profesores %}
+                <option value="{{ p.id_profesor }}" {% if p.id_profesor == curso.id_profesor %}selected{% endif %}>
+                    {{ p.nombre }} {{ p.apellido }} (ID: {{ p.id_profesor }})
+                </option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Precio:</label><br>
+        <input type="number" step="0.01" name="precio" value="{{ curso.precio }}" required style="width: 100%;">
+    </div>
+
+    <div style="margin-bottom: 15px;">
+        <label>Capacidad Máxima:</label><br>
+        <input type="number" name="capacidad_max" value="{{ curso.capacidad_max }}" required style="width: 100%;">
+    </div>
+
+    <button type="submit" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+        Guardar Cambios
+    </button>
+</form>
+{% endblock %}

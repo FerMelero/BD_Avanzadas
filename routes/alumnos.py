@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno
+from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -36,7 +36,21 @@ def new_alumno():
         apellidos = request.form["apellidos_alumno"]
         fecha_nacimiento_alumno = request.form["fecha_nacimiento_alumno"]
         dni = request.form["dni_alumno"]
-        nuevo_alumno = crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni)
-        return redirect(url_for("alumnos.view_alumno", id_alumno=nuevo_alumno))
+        dinero = float(request.form["dinero_alumno"])
+        if dinero < 0:
+            return "Error: El dinero no puede ser negativo", 400 
+            
+        nuevo_alumno = crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni, dinero)
+
+        if nuevo_alumno:
+            return redirect(url_for("alumnos.view_alumno", id_alumno=nuevo_alumno))
+        else:
+            return "Error al crear el alumno en la base de datos", 500
     
     return render_template("crearAlumno.html")
+
+@alumnos_bp.route("/auditoria")
+def auditoria_alumnos():
+    aud_alumnos = view_audit_alumnos()
+    print(len(aud_alumnos))
+    return render_template("audAlumnos.html", aud = aud_alumnos)

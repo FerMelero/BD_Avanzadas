@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block title %}Auditoria Alumnos{% endblock %}
+
+{% block content %}
+<h1>Historial de Cambios: Alumnos</h1>
+
+<table border="1" style="width:100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
+    <thead>
+        <tr>
+            <th>Operación</th>
+            <th>Fecha y Hora</th>
+            <th>Usuario DB</th>
+            <th>Nombre Alumno</th>
+            <th>ID Alumno</th>
+            <th>DNI Alumno</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for a in aud %}
+        <tr>
+            <td style="font-weight: bold; text-align: center;">
+                {% if a[0] == 'I' %}
+                    <span style="color: green;">INSERCIÓN</span>
+                {% elif a[0] == 'U' %}
+                    <span style="color: blue;">EDICIÓN</span>
+                {% elif a[0] == 'D' %}
+                    <span style="color: red;">ELIMINACIÓN</span>
+                {% else %}
+                    {{ a[0] }}
+                {% endif %}
+            </td>
+            {# a[1] es el timestamp, a[2] el user_id, etc. según tu SELECT #}
+            <td>{{ a[1].strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><code>{{ a[2] }}</code></td>
+            <td>{{ a[3] }}</td>
+            <td>{{ a[4] }}</td>
+            <td>{{ a[5] }}</td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align: center;">No hay registros en la auditoría.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+{% endblock %}

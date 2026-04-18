@@ -70,10 +70,62 @@ CREATE TABLE IF NOT EXISTS audit_alumnos(
     stamp          TIMESTAMP NOT NULL,
     user_id        VARCHAR(100) NOT NULL,
     nombre_alumno  VARCHAR(100) NOT NULL,
-    id_alumno      INTEGER, -- Ojo, aquí tenías id_profesor
-    dni_alumno     VARCHAR(20) -- Y aquí dni_profesor
-);'''
+    id_alumno      INTEGER,
+    dni_alumno     VARCHAR(20)
+);''',
 
+'''
+CREATE OR REPLACE FUNCTION fn_audit_profesores()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
+        VALUES ('D', now(), current_user, OLD.nombre, OLD.id_profesor, OLD.dni);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
+        VALUES ('U', now(), current_user, NEW.nombre, NEW.id_profesor, NEW.dni);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
+        VALUES ('I', now(), current_user, NEW.nombre, NEW.id_profesor, NEW.dni);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER tr_audit_profesores
+AFTER INSERT OR UPDATE OR DELETE ON profesores
+FOR EACH ROW EXECUTE FUNCTION fn_audit_profesores();
+''',
+
+'''
+CREATE OR REPLACE FUNCTION fn_audit_alumnos()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF (TG_OP = 'DELETE') THEN
+        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
+        VALUES ('D', now(), current_user, OLD.nombre, OLD.id_alumno, OLD.dni);
+        RETURN OLD;
+    ELSIF (TG_OP = 'UPDATE') THEN
+        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
+        VALUES ('U', now(), current_user, NEW.nombre, NEW.id_alumno, NEW.dni);
+        RETURN NEW;
+    ELSIF (TG_OP = 'INSERT') THEN
+        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
+        VALUES ('I', now(), current_user, NEW.nombre, NEW.id_alumno, NEW.dni);
+        RETURN NEW;
+    END IF;
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- 2. Crear el trigger
+CREATE TRIGGER tr_audit_alumnos
+AFTER INSERT OR UPDATE OR DELETE ON alumnos
+FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();
+'''
 
 )
 

@@ -14,7 +14,7 @@ def get_alumnos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dinero, dni FROM alumnos ORDER BY id_alumno;"
+                "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero FROM alumnos ORDER BY id_alumno;"
             )
             return [Alumno(*r) for r in cur.fetchall()]
 
@@ -46,7 +46,7 @@ def get_alumno_by_id(id_alumno): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dinero ,dni FROM alumnos WHERE id_alumno=%s;",
+            "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dni ,dinero FROM alumnos WHERE id_alumno=%s;",
             (id_alumno,) # debemos poner %s(id_alumno, ) para que seleccione bien el ID
         )
             row = cur.fetchone()
@@ -124,15 +124,21 @@ def get_alumnos_by_curso(id_curso):
             print("Fila obtenida:", rows) # depuración
             return [Alumno(*r) for r in rows]
 
-def crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni):
+def crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni, dinero):
     with get_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                "INSERT INTO alumnos (nombre, apellido, fecha_nacimiento, dni) VALUES (%s, %s, %s, %s) RETURNING id_alumno;",
-                (nombre, apellidos, fecha_nacimiento_alumno, dni)
-            )
-            id_alumno = cur.fetchone()[0]
-    return id_alumno
+        try:
+            with conn.cursor() as cur:
+                cur.execute(
+                    "INSERT INTO alumnos (nombre, apellido, fecha_nacimiento, dni, dinero) VALUES (%s, %s, %s, %s, %s) RETURNING id_alumno;",
+                    (nombre, apellidos, fecha_nacimiento_alumno, dni, dinero)
+                )
+                id_alumno = cur.fetchone()[0]
+                conn.commit()
+                return id_alumno
+        except Exception as e:
+            conn.rollback()
+            print(f"Error al crear alumno: {e}")
+            return None
 
 def crear_matricula(id_alumno: int, id_curso: int):
     with get_connection() as conn:
@@ -183,8 +189,10 @@ def crear_matricula(id_alumno: int, id_curso: int):
                     "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
                     (id_alumno, id_curso)
                 )
+                conn.commit()
                 return True
             except Exception as e:
+                conn.rollback()
                 return f"Error: {str(e)}"
 
 def demo_transaccion_rollback():
@@ -251,7 +259,19 @@ def resumen_alumno(id_alumno):
                 "num_profesores_distintos": row[1]
             }
 
+def view_audit_alumnos():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno
+                FROM audit_alumnos
+
+                """)
+            rows = cur.fetchall()
+            return rows
+
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
     print(cursos_alumnos_by_profesor(20))
     print(resumen_alumno(20))
+    print(view_audit_alumnos())

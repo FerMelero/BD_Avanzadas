@@ -4,7 +4,7 @@ import psycopg
 
 from config import load_config
 
-from models.entities import Alumno, Profesor, Matriculas, Cursos, AuditProfesor, AuditAlumno
+from models.entities import Alumno, Profesor, Matriculas, Cursos, AuditProfesor, AuditAlumno, AuditCurso
 
 def get_connection():
     cfg = load_config()
@@ -279,6 +279,16 @@ def view_audit_alumnos():
             """)
             return [AuditAlumno(*r) for r in cur.fetchall()]
 
+def view_audit_cursos():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute("""
+                SELECT operacion, stamp, user_id, nombre_curso, id_curso, precio_curso
+                FROM audit_cursos 
+                ORDER BY stamp DESC;
+            """)
+            return [AuditCurso(*r) for r in cur.fetchall()]
+
 def crear_curso(nombre_curso, id_profesor, precio, capacidad_max):
     with get_connection() as conn:
         with conn.cursor() as cur:
@@ -364,6 +374,53 @@ def modificar_curso(id_curso, nombre, id_profesor, precio, capacidad):
                 print(f"Error al modificar curso: {e}")
                 return False
 
+def delete_alumno(id_alumno):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(
+                    "DELETE FROM alumnos WHERE id_alumno = %s;", 
+                    (id_alumno,)
+                )
+                conn.commit()
+                return True
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al eliminar el alumno alumno: {e}") 
+                return None
+
+def delete_profesor(id_profesor):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(
+                    "DELETE FROM profesores WHERE id_profesor = %s;", 
+                    (id_profesor,)
+                )
+                conn.commit()
+                return True
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al eliminar el profesor: {e}") 
+                return None
+
+def delete_curso(id_curso):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            try:
+                cur.execute(
+                    "DELETE FROM cursos WHERE id_curso = %s;", 
+                    (id_curso,)
+                )
+                conn.commit()
+                return True
+
+            except Exception as e:
+                conn.rollback()
+                print(f"Error al eliminar el curso: {e}") 
+                return None
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
     print(cursos_alumnos_by_profesor(20))

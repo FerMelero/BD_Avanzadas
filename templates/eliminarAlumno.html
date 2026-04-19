@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Confirmar Eliminación{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px; margin: 50px auto; border: 1px solid #dc3545; padding: 20px; border-radius: 8px; text-align: center;">
+    <h1 style="color: #dc3545;">¿Estás seguro?</h1>
+    
+    <p style="font-size: 1.2em;">
+        Estás a punto de eliminar al alumno: <br>
+        <strong>{{ alumno.nombre }} {{ alumno.apellido }}</strong>
+    </p>
+
+    <p style="color: #666; font-size: 0.9em;">
+        Esta acción no se puede deshacer.
+    </p>
+
+    <div style="margin-top: 30px;">
+        <form method="POST" action="{{ url_for('alumnos.eliminar_alumno', id_alumno=alumno.id_alumno) }}" style="display: inline-block;">
+            <button type="submit" style="background-color: #dc3545; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                Sí, deseo eliminarlo
+            </button>
+        </form>
+
+        <a href="{{ url_for('alumnos.list_') }}" style="display: inline-block; margin-left: 10px; padding: 10px 20px; text-decoration: none; background-color: #6c757d; color: white; border-radius: 4px;">
+            No, cancelar
+        </a>
+    </div>
+</div>
+{% endblock %}

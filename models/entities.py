@@ -60,3 +60,12 @@ class AuditAlumno:
     nombre: str
     id_alumno: int
     dni: str
+
+@dataclass(frozen=True)
+class AuditCurso:
+    operacion: str
+    stamp: date
+    user_id: str
+    nombre_curso: str
+    id_curso: int
+    precio_curso: str

@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso
+from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso, delete_curso, view_audit_cursos
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -11,7 +11,6 @@ cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
 
 @cursos_bp.route("")
 def list_():
-    """Lista de parts. Incluye indicador de cuáles tienen dibujo."""
     cursos = get_cursos()
     return render_template(
         "cursos.html",
@@ -71,3 +70,21 @@ def edit_curso(id_curso):
         return "Curso no encontrado", 404
         
     return render_template("modificarCurso.html", curso=curso_obj, profesores=profs)
+
+@cursos_bp.route("/eliminar/<int:id_curso>", methods=["GET", "POST"])
+def eliminar_curso(id_curso):
+    curso = get_cursos_by_id(id_curso)
+    if request.method == "POST":
+        eliminacion = delete_curso(id_curso)
+        if eliminacion:
+            return redirect (url_for("cursos.list_",))
+    
+    if not curso:
+        return "Curso no encontrado", 404
+        
+    return render_template("eliminarCurso.html", curso=curso)
+
+@cursos_bp.route("/auditoria")
+def auditoria_cursos():
+    aud_cursos = view_audit_cursos()
+    return render_template("audCursos.html", aud = aud_cursos)

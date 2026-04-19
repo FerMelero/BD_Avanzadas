@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno
+from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -75,3 +75,17 @@ def edit_alumno(id_alumno):
             return "Error al crear el alumno en la base de datos", 500
     
     return render_template("modificarAlumno.html", alumno = alumno)
+
+@alumnos_bp.route("/eliminar/<int:id_alumno>", methods=["GET", "POST"])
+def eliminar_alumno(id_alumno):
+    alumno = get_alumno_by_id(id_alumno)
+    if request.method == "POST":
+        eliminacion = delete_alumno(id_alumno)
+        if eliminacion:
+            return redirect (url_for("alumnos.list_",))
+    
+    if not alumno:
+        return "Alumno no encontrado", 404
+        
+    return render_template("eliminarAlumno.html", alumno=alumno)
+

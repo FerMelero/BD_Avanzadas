@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Auditoría de Cursos{% endblock %}
+
+{% block content %}
+<h1>Historial de Cambios: Cursos</h1>
+
+<p>Registro de inserciones, modificaciones y eliminaciones de la oferta académica.</p>
+
+<table border="1" style="width:100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
+    <thead">
+        <tr>
+            <th>Operación</th>
+            <th>Fecha y Hora</th>
+            <th>Usuario</th>
+            <th>Nombre del Curso</th>
+            <th>ID Curso</th>
+            <th>Precio Registrado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in aud %}
+        <tr>
+            <td style="font-weight: bold; text-align: center;">
+                {% if c.operacion == 'I' %}
+                    <span style="color: green;">INSERCIÓN</span>
+                {% elif c.operacion == 'U' %}
+                    <span style="color: blue;">EDICIÓN</span>
+                {% elif c.operacion == 'D' %}
+                    <span style="color: red;">ELIMINACIÓN</span>
+                {% else %}
+                    {{ c.operacion }}
+                {% endif %}
+            </td>
+            <td>{{ c.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td><code>{{ c.user_id }}</code></td>
+            <td>{{ c.nombre_curso }}</td>
+            <td>{{ c.id_curso }}</td>
+            <td><strong>{{ "%.2f"|format(c.precio_curso) }}€</strong></td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" style="text-align: center; padding: 20px;">
+                No hay registros de movimientos en los cursos.
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('cursos.list_') }}">← Volver a Cursos</a>
+</div>
+{% endblock %}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor,view_audit_profesores, crear_profesor, modificar_profesor
+from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor,view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor
 
 
 profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
@@ -68,3 +68,16 @@ def edit_profesor(id_profesor):
             return "Error al mdoficiar el profesor en la base de datos", 500
     
     return render_template("modificarProfesor.html", profesor = profesor)
+
+@profesores_bp.route("/eliminar/<int:id_profesor>", methods=["GET", "POST"])
+def eliminar_profesor(id_profesor):
+    profesor = get_profesor_by_id(id_profesor)
+    if request.method == "POST":
+        eliminacion = delete_profesor(id_profesor)
+        if eliminacion:
+            return redirect (url_for("profesores.list_",))
+    
+    if not profesor:
+        return "Profesor no encontrado", 404
+        
+    return render_template("eliminarProfesor.html", profesor=profesor)

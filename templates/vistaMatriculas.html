@@ -2,13 +2,35 @@
 {% block title %}Vista de Matriculas{% endblock %}
 
 {% block content %}
-  <h1>Vista Alumnos - Profesores - Asignaturas</h1>
+  <h1>Vista Alumnos - Profesores - Cursos</h1>
+  
+  <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
+  <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
+    <legend>Filtros de Búsqueda</legend>
+    <form method="GET" action="{{ url_for('matriculas.vista_matriculas') }}">
+      <label>Nombre Alumno: 
+        <input type="text" name="nombre_alumno" value="{{ nombre_alumno or '' }}" placeholder="Buscar por alumno">
+      </label>
+      <label>Nombre Profesor: 
+        <input type="text" name="nombre_profesor" value="{{ nombre_profesor or '' }}" placeholder="Buscar por profesor">
+      </label>
+      <label>Nombre Curso: 
+        <input type="text" name="nombre_curso" value="{{ nombre_curso or '' }}" placeholder="Buscar por curso">
+      </label>
+      <label>Por página: 
+        <input type="number" name="limit" value="{{ limit }}" min="1" max="100">
+      </label>
+      <button type="submit">🔍 Buscar</button>
+      <a href="{{ url_for('matriculas.vista_matriculas') }}">Limpiar</a>
+    </form>
+  </fieldset>
+  
   <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
     <thead>
       <tr>
         <th>Nombre Alumno</th>
         <th>Nombre Profesor</th>
-        <th>Nombre Asignatura</th>
+        <th>Nombre Curso</th>
       </tr>
     </thead>
     <tbody>
@@ -16,7 +38,7 @@
       <tr>
         <td>{{ fila.nombre_alumno }}</td>
         <td>{{ fila.nombre_profesor }}</td>
-        <td>{{ fila.nombre_asignatura }}</td>
+        <td>{{ fila.nombre_curso }}</td>
       </tr>
       {% else %}
       <tr>
@@ -25,4 +47,17 @@
       {% endfor %}
     </tbody>
   </table>
+  
+  <!-- Paginación -->
+  {% if vista %}
+  <div style="margin-top: 15px; text-align: center;">
+    {% if page > 1 %}
+      <a href="{{ url_for('matriculas.vista_matriculas', page=page-1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_curso=nombre_curso) }}">← Anterior</a>
+    {% endif %}
+    <span style="margin: 0 10px;">Página {{ page }}</span>
+    {% if vista|length == limit %}
+      <a href="{{ url_for('matriculas.vista_matriculas', page=page+1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_curso=nombre_curso) }}">Siguiente →</a>
+    {% endif %}
+  </div>
+  {% endif %}
 {% endblock %}

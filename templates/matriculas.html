@@ -3,13 +3,64 @@
 
 {% block content %}
   <h1>Relación Alumnos - Cursos</h1>
-  <ul>
-    {% for m in matriculas %}
-    <li>
-      Alumno ID: <strong>{{ m.id_alumno }}</strong> está inscrito en el Curso ID: <strong>{{ m.id_curso }}</strong>
-    </li>
-    {% else %}
-    <li>No hay matrículas registradas.</li>
-    {% endfor %}
-  </ul>
+  
+  <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
+  <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
+    <legend>Filtros de Búsqueda</legend>
+    <form method="GET" action="{{ url_for('matriculas.list_') }}">
+      <label>ID Alumno: 
+        <input type="number" name="id_alumno" value="{{ id_alumno or '' }}" placeholder="ID del alumno">
+      </label>
+      <label>ID Curso: 
+        <input type="number" name="id_curso" value="{{ id_curso or '' }}" placeholder="ID del curso">
+      </label>
+      <label>Por página: 
+        <input type="number" name="limit" value="{{ limit }}" min="1" max="100">
+      </label>
+      <button type="submit">🔍 Buscar</button>
+      <a href="{{ url_for('matriculas.list_') }}">Limpiar</a>
+    </form>
+  </fieldset>
+  
+  <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th>ID Alumno</th>
+        <th>Nombre Alumno</th>
+        <th>ID Curso</th>
+        <th>Nombre Curso</th>
+        <th>Profesor</th>
+        <th>Precio</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in matriculas %}
+      <tr>
+        <td><strong>{{ m[0] }}</strong></td>
+        <td>{{ m[2] }} {{ m[3] }}</td>
+        <td><strong>{{ m[1] }}</strong></td>
+        <td>{{ m[4] }}</td>
+        <td>-</td>
+        <td>{{ m[5] }}€</td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center;">No hay matrículas registradas.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  
+  <!-- Paginación -->
+  {% if matriculas %}
+  <div style="margin-top: 15px; text-align: center;">
+    {% if page > 1 %}
+      <a href="{{ url_for('matriculas.list_', page=page-1, limit=limit, id_alumno=id_alumno, id_curso=id_curso) }}">← Anterior</a>
+    {% endif %}
+    <span style="margin: 0 10px;">Página {{ page }}</span>
+    {% if matriculas|length == limit %}
+      <a href="{{ url_for('matriculas.list_', page=page+1, limit=limit, id_alumno=id_alumno, id_curso=id_curso) }}">Siguiente →</a>
+    {% endif %}
+  </div>
+  {% endif %}
 {% endblock %}

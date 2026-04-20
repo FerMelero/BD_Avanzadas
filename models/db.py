@@ -47,13 +47,13 @@ def get_matriculas_vista():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT nombre_alumno, nombre_profesor, nombre_asignatura FROM vista_alumnos_profesores_cursos ORDER BY nombre_alumno, nombre_asignatura;"
+                "SELECT nombre_alumno, nombre_profesor, nombre_curso FROM vista_alumnos_profesores_cursos ORDER BY nombre_alumno, nombre_curso;"
             )
             return [
                 {
                     "nombre_alumno": row[0],
                     "nombre_profesor": row[1],
-                    "nombre_asignatura": row[2],
+                    "nombre_curso": row[2],
                 }
                 for row in cur.fetchall()
             ]
@@ -438,6 +438,190 @@ def delete_curso(id_curso):
                 conn.rollback()
                 print(f"Error al eliminar el curso: {e}") 
                 return None
+
+# ============================================
+# BÚSQUEDAS FILTRADAS Y SEGURAS (Tema 12)
+# ============================================
+
+def search_alumnos(nombre=None, apellido=None, dni=None, dinero_min=None, dinero_max=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada de alumnos con filtros string, numéricos y paginación."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            sql = "SELECT id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero FROM alumnos WHERE 1=1"
+            params = []
+            
+            # Normalizar entradas string vacías a None
+            if nombre is not None:
+                nombre = nombre.strip() or None
+            if apellido is not None:
+                apellido = apellido.strip() or None
+            if dni is not None:
+                dni = dni.strip() or None
+            
+            # Filtro por nombre (ILIKE insensible a mayúsculas, como en tema12)
+            if nombre:
+                sql += " AND nombre ILIKE %s"
+                params.append(f"%{nombre}%")
+            
+            # Filtro por apellido
+            if apellido:
+                sql += " AND apellido ILIKE %s"
+                params.append(f"%{apellido}%")
+            
+            # Filtro por DNI
+            if dni:
+                sql += " AND dni ILIKE %s"
+                params.append(f"%{dni}%")
+            
+            # Filtro por dinero mínimo
+            if dinero_min is not None:
+                sql += " AND dinero >= %s"
+                params.append(dinero_min)
+            
+            # Filtro por dinero máximo
+            if dinero_max is not None:
+                sql += " AND dinero <= %s"
+                params.append(dinero_max)
+            
+            # Ordenamiento + paginación
+            sql += " ORDER BY id_alumno LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            cur.execute(sql, params)
+            return [Alumno(*r) for r in cur.fetchall()]
+
+def search_profesores(nombre=None, apellido=None, dni=None, fecha_nacimiento=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada de profesores con filtros string, numéricos y paginación."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            sql = "SELECT id_profesor, nombre, apellido, fecha_nacimiento, dni FROM profesores WHERE 1=1"
+            params = []
+            
+            if nombre:
+                sql += " AND nombre ILIKE %s"
+                params.append(f"%{nombre}%")
+            
+            if apellido:
+                sql += " AND apellido ILIKE %s"
+                params.append(f"%{apellido}%")
+            
+            if dni:
+                sql += " AND dni ILIKE %s"
+                params.append(f"%{dni}%")
+            
+            if fecha_nacimiento:
+                sql += " AND fecha_nacimiento = %s"
+                params.append(fecha_nacimiento)
+            
+            sql += " ORDER BY id_profesor LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            cur.execute(sql, params)
+            return [Profesor(*r) for r in cur.fetchall()]
+
+def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=None, id_profesor=None, id_curso=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada de cursos con filtros string, numéricos, IDs y paginación."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            sql = "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE 1=1"
+            params = []
+            
+            if nombre is not None:
+                nombre = nombre.strip() or None
+            if nombre:
+                sql += " AND nombre_curso ILIKE %s"
+                params.append(f"%{nombre}%")
+            
+            if precio_min is not None:
+                sql += " AND precio >= %s"
+                params.append(precio_min)
+            
+            if precio_max is not None:
+                sql += " AND precio <= %s"
+                params.append(precio_max)
+            
+            if capacidad_min is not None:
+                sql += " AND capacidad_max >= %s"
+                params.append(capacidad_min)
+            
+            if id_profesor is not None:
+                sql += " AND id_profesor = %s"
+                params.append(id_profesor)
+            
+            if id_curso is not None:
+                sql += " AND id_curso = %s"
+                params.append(id_curso)
+            
+            sql += " ORDER BY id_curso LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            cur.execute(sql, params)
+            return [Cursos(*r) for r in cur.fetchall()]
+
+def search_matriculas(id_curso=None, id_alumno=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada de matriculas con filtros y paginación."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            sql = """
+                SELECT m.id_alumno, m.id_curso, a.nombre, a.apellido, c.nombre_curso, c.precio
+                FROM matriculas m
+                JOIN alumnos a ON m.id_alumno = a.id_alumno
+                JOIN cursos c ON m.id_curso = c.id_curso
+                WHERE 1=1
+            """
+            params = []
+            
+            if id_curso is not None:
+                sql += " AND m.id_curso = %s"
+                params.append(id_curso)
+            
+            if id_alumno is not None:
+                sql += " AND m.id_alumno = %s"
+                params.append(id_alumno)
+            
+            sql += " ORDER BY m.id_alumno LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            cur.execute(sql, params)
+            # Devolver como diccionarios para mayor flexibilidad
+            return cur.fetchall()
+
+def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_curso=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada en la vista alumnos-profesores-cursos."""
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            sql = """
+                SELECT nombre_alumno, nombre_profesor, nombre_curso 
+                FROM vista_alumnos_profesores_cursos 
+                WHERE 1=1
+            """
+            params = []
+            
+            if nombre_alumno:
+                sql += " AND nombre_alumno ILIKE %s"
+                params.append(f"%{nombre_alumno}%")
+            
+            if nombre_profesor:
+                sql += " AND nombre_profesor ILIKE %s"
+                params.append(f"%{nombre_profesor}%")
+            
+            if nombre_curso:
+                sql += " AND nombre_curso ILIKE %s"
+                params.append(f"%{nombre_curso}%")
+            
+            sql += " ORDER BY nombre_alumno, nombre_curso LIMIT %s OFFSET %s"
+            params.extend([limit, offset])
+            
+            cur.execute(sql, params)
+            return [
+                {
+                    "nombre_alumno": row[0],
+                    "nombre_profesor": row[1],
+                    "nombre_curso": row[2],
+                }
+                for row in cur.fetchall()
+            ]
+
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
     print(cursos_alumnos_by_profesor(20))

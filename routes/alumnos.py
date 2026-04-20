@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno
+from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno, search_alumnos
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -11,11 +11,70 @@ alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
 
 @alumnos_bp.route("")
 def list_():
-    """Lista de alumnos."""
-    alumnos = get_alumnos()
+    """Lista de alumnos con búsqueda opcional."""
+    # Obtener parámetros de búsqueda de la query string
+    nombre = request.args.get("nombre", None)
+    apellido = request.args.get("apellido", None)
+    dni = request.args.get("dni", None)
+    dinero_min = request.args.get("dinero_min", None)
+    dinero_max = request.args.get("dinero_max", None)
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    offset = (page - 1) * limit
+    
+    # Normalizar strings vacíos a None
+    if nombre is not None:
+        nombre = nombre.strip() or None
+    if apellido is not None:
+        apellido = apellido.strip() or None
+    if dni is not None:
+        dni = dni.strip() or None
+    
+    # Convertir dinero a float si está presente
+    if dinero_min and dinero_min.strip():
+        try:
+            dinero_min = float(dinero_min)
+        except ValueError:
+            dinero_min = None
+    else:
+        dinero_min = None
+    
+    if dinero_max and dinero_max.strip():
+        try:
+            dinero_max = float(dinero_max)
+        except ValueError:
+            dinero_max = None
+    else:
+        dinero_max = None
+    
+    # Si hay parámetros de búsqueda, usar búsqueda filtrada
+    if nombre or apellido or dni or dinero_min or dinero_max:
+        alumnos = search_alumnos(
+            nombre=nombre,
+            apellido=apellido,
+            dni=dni,
+            dinero_min=dinero_min,
+            dinero_max=dinero_max,
+            offset=offset,
+            limit=limit
+        )
+        search_active = True
+    else:
+        # Si no hay búsqueda, devolver todos con paginación
+        alumnos = search_alumnos(offset=offset, limit=limit)
+        search_active = False
+    
     return render_template(
         "alumnos.html",
-        alumnos=alumnos
+        alumnos=alumnos,
+        search_active=search_active,
+        page=page,
+        limit=limit,
+        nombre=nombre,
+        apellido=apellido,
+        dni=dni,
+        dinero_min=dinero_min,
+        dinero_max=dinero_max
     )
 
 @alumnos_bp.route("/<int:id_alumno>") # le pasamos un ID

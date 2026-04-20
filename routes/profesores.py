@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor,view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor
+from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor, view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor, search_profesores
 
 
 profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
@@ -10,11 +10,40 @@ profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
 
 @profesores_bp.route("")
 def list_():
-    """Lista de profesores."""
-    profesores = get_profesores()
+    """Lista de profesores con búsqueda opcional."""
+    nombre = request.args.get("nombre", None)
+    apellido = request.args.get("apellido", None)
+    dni = request.args.get("dni", None)
+    fecha_nacimiento = request.args.get("fecha_nacimiento", None)
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    offset = (page - 1) * limit
+    
+    # Si hay parámetros de búsqueda, usar búsqueda filtrada
+    if nombre or apellido or dni or fecha_nacimiento:
+        profesores = search_profesores(
+            nombre=nombre,
+            apellido=apellido,
+            dni=dni,
+            fecha_nacimiento=fecha_nacimiento,
+            offset=offset,
+            limit=limit
+        )
+        search_active = True
+    else:
+        profesores = search_profesores(offset=offset, limit=limit)
+        search_active = False
+    
     return render_template(
         "profesores.html",
-        profesores=profesores
+        profesores=profesores,
+        search_active=search_active,
+        page=page,
+        limit=limit,
+        nombre=nombre,
+        apellido=apellido,
+        dni=dni,
+        fecha_nacimiento=fecha_nacimiento
     )
 
 @profesores_bp.route("/<int:id_profesor>") # le pasamos un ID

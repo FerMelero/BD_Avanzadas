@@ -82,7 +82,7 @@ El proceso de inscripción de alumnos no es una simple inserción; se ha diseña
 | `profesores.auditoria_profesores` | GET | `/profesores/auditoria` | Log de cambios. |
 | **Cursos** | | | |
 | `cursos.list_` | GET | `/cursos` | Catálogo y precios. |
-| `cursos.new_curso` | GET, POST | `/cursos/nuevo` | Crear asignatura. |
+| `cursos.new_curso` | GET, POST | `/cursos/nuevo` | Crear curso. |
 | `cursos.auditoria_cursos` | GET | `/cursos/auditoria` | Historial de precios/cupos. |
 | **Matrículas** | | | |
 | `matriculas.list_` | GET | `/matriculas` | Ver inscripciones actuales. |

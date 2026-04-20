@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso, delete_curso, view_audit_cursos
+from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso, delete_curso, view_audit_cursos, search_cursos
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -11,10 +11,89 @@ cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
 
 @cursos_bp.route("")
 def list_():
-    cursos = get_cursos()
+    """Lista de cursos con búsqueda opcional."""
+    nombre = request.args.get("nombre", None)
+    id_profesor = request.args.get("id_profesor", None)
+    id_curso = request.args.get("id_curso", None)
+    precio_min = request.args.get("precio_min", None)
+    precio_max = request.args.get("precio_max", None)
+    capacidad_min = request.args.get("capacidad_min", None)
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    offset = (page - 1) * limit
+    
+    # Normalizar strings vacíos
+    if nombre is not None:
+        nombre = nombre.strip() or None
+    if id_profesor and id_profesor.strip():
+        try:
+            id_profesor = int(id_profesor)
+        except ValueError:
+            id_profesor = None
+    else:
+        id_profesor = None
+    
+    if id_curso and id_curso.strip():
+        try:
+            id_curso = int(id_curso)
+        except ValueError:
+            id_curso = None
+    else:
+        id_curso = None
+    
+    if precio_min and precio_min.strip():
+        try:
+            precio_min = float(precio_min)
+        except ValueError:
+            precio_min = None
+    else:
+        precio_min = None
+    
+    if precio_max and precio_max.strip():
+        try:
+            precio_max = float(precio_max)
+        except ValueError:
+            precio_max = None
+    else:
+        precio_max = None
+    
+    if capacidad_min and capacidad_min.strip():
+        try:
+            capacidad_min = int(capacidad_min)
+        except ValueError:
+            capacidad_min = None
+    else:
+        capacidad_min = None
+    
+    # Si hay parámetros de búsqueda, usar búsqueda filtrada
+    if nombre or id_profesor is not None or id_curso is not None or precio_min is not None or precio_max is not None or capacidad_min is not None:
+        cursos = search_cursos(
+            nombre=nombre,
+            id_profesor=id_profesor,
+            id_curso=id_curso,
+            precio_min=precio_min,
+            precio_max=precio_max,
+            capacidad_min=capacidad_min,
+            offset=offset,
+            limit=limit
+        )
+        search_active = True
+    else:
+        cursos = search_cursos(offset=offset, limit=limit)
+        search_active = False
+    
     return render_template(
         "cursos.html",
-        cursos=cursos
+        cursos=cursos,
+        search_active=search_active,
+        page=page,
+        limit=limit,
+        nombre=nombre,
+        id_profesor=id_profesor,
+        id_curso=id_curso,
+        precio_min=precio_min,
+        precio_max=precio_max,
+        capacidad_min=capacidad_min
     )
 
 @cursos_bp.route("/<int:id_curso>")

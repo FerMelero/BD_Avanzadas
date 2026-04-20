@@ -3,14 +3,46 @@
 
 {% block content %}
   <h1>Cursos Disponibles</h1>
-  <table border="1">
+  
+  <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
+  <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
+    <legend>Filtros de Búsqueda</legend>
+    <form method="GET" action="{{ url_for('cursos.list_') }}">
+      <label>Nombre: 
+        <input type="text" name="nombre" value="{{ nombre or '' }}" placeholder="Buscar por nombre">
+      </label>
+      <label>Precio mín: 
+        <input type="number" name="precio_min" value="{{ precio_min or '' }}" placeholder="0" step="0.01">
+      </label>
+      <label>Precio máx: 
+        <input type="number" name="precio_max" value="{{ precio_max or '' }}" placeholder="999" step="0.01">
+      </label>
+      <label>Capacidad mín: 
+        <input type="number" name="capacidad_min" value="{{ capacidad_min or '' }}" placeholder="1">
+      </label>
+      <label>ID Profesor: 
+        <input type="number" name="id_profesor" value="{{ id_profesor or '' }}" placeholder="ID del profesor">
+      </label>
+      <label>ID Curso: 
+        <input type="number" name="id_curso" value="{{ id_curso or '' }}" placeholder="ID del curso">
+      </label>
+      <label>Por página: 
+        <input type="number" name="limit" value="{{ limit }}" min="1" max="100">
+      </label>
+      <button type="submit">🔍 Buscar</button>
+      <a href="{{ url_for('cursos.list_') }}">Limpiar</a>
+    </form>
+  </fieldset>
+  
+  <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
     <thead>
       <tr>
           <th>ID</th>
           <th>Nombre del Curso</th>
           <th>ID Profesor Asignado</th>
           <th>Precio del curso</th>
-          <th>Capacidad máxima del curso</th>
+          <th>Capacidad máxima</th>
+          <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
@@ -19,12 +51,28 @@
           <td>{{ curso.id_curso }}</td>
           <td>{{ curso.nombre_curso }}</td>
           <td>{{ curso.id_profesor }}</td>
-          <td>{{ curso.precio }}</td>
+          <td>{{ curso.precio }}€</td>
           <td>{{ curso.capacidad_max }}</td>
+          <td>
+            <a href="{{ url_for('cursos.view_curso', id_curso=curso.id_curso) }}">Ver</a>
+          </td>
       </tr>
       {% else %}
-      <tr><td colspan="3">No hay cursos creados.</td></tr>
+      <tr><td colspan="6" style="text-align: center;">No hay cursos creados.</td></tr>
       {% endfor %}
     </tbody>
   </table>
+  
+  <!-- Paginación -->
+  {% if cursos %}
+  <div style="margin-top: 15px; text-align: center;">
+    {% if page > 1 %}
+      <a href="{{ url_for('cursos.list_', page=page-1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_curso=id_curso) }}">← Anterior</a>
+    {% endif %}
+    <span style="margin: 0 10px;">Página {{ page }}</span>
+    {% if cursos|length == limit %}
+      <a href="{{ url_for('cursos.list_', page=page+1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_curso=id_curso) }}">Siguiente →</a>
+    {% endif %}
+  </div>
+  {% endif %}
 {% endblock %}

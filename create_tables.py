@@ -55,11 +55,14 @@ DDL = (
             ON DELETE CASCADE
     );''',                         
     '''
+    DROP VIEW IF EXISTS vista_alumnos_profesores_cursos;
+    ''',
+    '''
     CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
     SELECT
         a.nombre || ' ' || a.apellido AS nombre_alumno,
         p.nombre || ' ' || p.apellido AS nombre_profesor,
-        c.nombre_curso AS nombre_asignatura
+        c.nombre_curso AS nombre_curso
     FROM matriculas m
     JOIN alumnos a ON m.id_alumno = a.id_alumno
     JOIN cursos c ON m.id_curso = c.id_curso
@@ -175,6 +178,24 @@ DROP TRIGGER IF EXISTS tr_audit_cursos ON cursos;
 CREATE TRIGGER tr_audit_cursos
 AFTER INSERT OR UPDATE OR DELETE ON cursos
 FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();
+''',
+
+'''
+-- Índices para búsquedas filtradas (mejoran ILIKE y comparaciones numéricas)
+
+CREATE INDEX IF NOT EXISTS idx_alumnos_nombre ON alumnos (nombre);
+CREATE INDEX IF NOT EXISTS idx_alumnos_apellido ON alumnos (apellido);
+CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);
+
+CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);
+CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);
+
+CREATE INDEX IF NOT EXISTS idx_cursos_nombre ON cursos (nombre_curso);
+CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);
+CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);
+
+CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);
+CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);
 '''
 
 )

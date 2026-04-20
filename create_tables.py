@@ -55,6 +55,17 @@ DDL = (
             ON DELETE CASCADE
     );''',                         
     '''
+    CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
+    SELECT
+        a.nombre || ' ' || a.apellido AS nombre_alumno,
+        p.nombre || ' ' || p.apellido AS nombre_profesor,
+        c.nombre_curso AS nombre_asignatura
+    FROM matriculas m
+    JOIN alumnos a ON m.id_alumno = a.id_alumno
+    JOIN cursos c ON m.id_curso = c.id_curso
+    JOIN profesores p ON c.id_profesor = p.id_profesor;
+    ''',
+    '''
     CREATE TABLE IF NOT EXISTS audit_profesores(
     operacion      CHAR(1) NOT NULL,
     stamp          TIMESTAMP NOT NULL,
@@ -106,6 +117,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_audit_profesores ON profesores;
 CREATE TRIGGER tr_audit_profesores
 AFTER INSERT OR UPDATE OR DELETE ON profesores
 FOR EACH ROW EXECUTE FUNCTION fn_audit_profesores();
@@ -132,6 +144,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_audit_alumnos ON alumnos;
 CREATE TRIGGER tr_audit_alumnos
 AFTER INSERT OR UPDATE OR DELETE ON alumnos
 FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();
@@ -158,6 +171,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+DROP TRIGGER IF EXISTS tr_audit_cursos ON cursos;
 CREATE TRIGGER tr_audit_cursos
 AFTER INSERT OR UPDATE OR DELETE ON cursos
 FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();

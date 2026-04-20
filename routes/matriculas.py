@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_matriculas, crear_matricula, demo_transaccion_rollback, get_alumnos, get_cursos
+from models.db import get_matriculas, get_matriculas_vista, crear_matricula, demo_transaccion_rollback, get_alumnos, get_cursos
 
 
 matriculas_bp = Blueprint("matriculas", __name__, url_prefix="/matriculas")
@@ -33,6 +33,14 @@ def matricular_alumno():
         else:
             error = resultado
     return render_template("matricularAlumno.html", error=error, alumnos=alumnos, cursos=cursos)
+
+@matriculas_bp.route("/vista")
+def vista_matriculas():
+    vista = get_matriculas_vista()
+    return render_template(
+        "vistaMatriculas.html",
+        vista=vista
+    )
 
 @matriculas_bp.route("/demo-rollback")
 def demo_rollback():

@@ -42,6 +42,23 @@ def get_matriculas():
             )
             return [Matriculas(*r) for r in cur.fetchall()]
 
+
+def get_matriculas_vista():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT nombre_alumno, nombre_profesor, nombre_asignatura FROM vista_alumnos_profesores_cursos ORDER BY nombre_alumno, nombre_asignatura;"
+            )
+            return [
+                {
+                    "nombre_alumno": row[0],
+                    "nombre_profesor": row[1],
+                    "nombre_asignatura": row[2],
+                }
+                for row in cur.fetchall()
+            ]
+
+
 def get_alumno_by_id(id_alumno): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:

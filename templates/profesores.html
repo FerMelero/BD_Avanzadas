@@ -1,19 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Profesores{% endblock %}
+{% block title %}Lista de Profesores{% endblock %}
 
 {% block content %}
-  <h1>Listado de Profesores</h1>
-  <ul class="list">
-    {% for profe in profesores %}
-    <li>
-      <strong>ID: {{ profe.id_profesor }}</strong> — 
-      {{ profe.nombre }} {{ profe.apellido }}
-      <div>
-        <small>DNI: {{ profe.dni }} | Nacimiento: {{ profe.fecha_nacimiento }}</small>
-      </div>
-    </li>
-    {% else %}
-    <li class="empty">No hay profesores registrados.</li>
-    {% endfor %}
-  </ul>
+  <h1>Profesores Registrados</h1>
+  
+  <table border="1" style="width:100%; border-collapse: collapse; text-align: left;">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Apellido</th>
+        <th>DNI</th>
+        <th>Fecha de Nacimiento</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for profe in profesores %}
+      <tr>
+        <td><strong>#{{ profe.id_profesor }}</strong></td>
+        <td>{{ profe.nombre }}</td>
+        <td>{{ profe.apellido }}</td>
+        <td>{{ profe.dni }}</td>
+        <td>{{ profe.fecha_nacimiento }}</td>
+        <td>
+            <a href="{{ url_for('profesores.view_profesor', id_profesor=profe.id_profesor) }}">Ver detalle</a>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" style="text-align: center;">No hay profesores en la base de datos.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 {% endblock %}

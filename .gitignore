@@ -1,4 +1,7 @@
 database.ini
 __pycache__/
 venv/
+/.venv/
 bd_sqlite/*.db
+dag_sqlite.pyZone.Identifier
+bd_sqlite/usuarios.dbZone.Identifier

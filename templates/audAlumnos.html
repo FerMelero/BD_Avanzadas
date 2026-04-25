@@ -10,9 +10,12 @@
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario DB</th>
-            <th>Nombre Alumno</th>
-            <th>DNI Alumno</th>
-            <th>ID Alumno</th>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Apellido</th>
+            <th>F. Nacimiento</th>
+            <th>DNI</th>
+            <th>Dinero</th>
         </tr>
     </thead>
     <tbody>
@@ -22,7 +25,7 @@
                 {% if a.operacion == 'I' %}
                     <span style="color: green;">INSERCIÓN</span>
                 {% elif a.operacion == 'U' %}
-                    <span style="color: blue;">EDICIÓN</span>
+                    <span style="color: #d4a017;">EDICIÓN</span>
                 {% elif a.operacion == 'D' %}
                     <span style="color: red;">ELIMINACIÓN</span>
                 {% else %}
@@ -31,13 +34,16 @@
             </td>
             <td>{{ a.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td><code>{{ a.user_id }}</code></td>
-            <td>{{ a.nombre }}</td>
-            <td>{{ a.dni }}</td>
             <td>{{ a.id_alumno }}</td>
+            <td>{{ a.nombre }}</td>
+            <td>{{ a.apellido }}</td>
+            <td>{{ a.fecha_nacimiento }}</td>
+            <td>{{ a.dni }}</td>
+            <td>{{ "%.2f"|format(a.dinero) }}€</td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center;">No hay registros en la auditoría.</td>
+            <td colspan="9" style="text-align: center;">No hay registros en la auditoría.</td>
         </tr>
         {% endfor %}
     </tbody>

@@ -10,9 +10,11 @@
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario DB</th>
+            <th>ID</th>
             <th>Nombre</th>
+            <th>Apellido</th>
+            <th>F. Nacimiento</th>
             <th>DNI</th>
-            <th>ID Profesor</th>
         </tr>
     </thead>
     <tbody>
@@ -31,13 +33,15 @@
             </td>
             <td>{{ p.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td><code>{{ p.user_id }}</code></td>
-            <td>{{ p.nombre }}</td>
-            <td>{{ p.dni }}</td>
             <td>{{ p.id_profesor }}</td>
+            <td>{{ p.nombre }}</td>
+            <td>{{ p.apellido }}</td>
+            <td>{{ p.fecha_nacimiento }}</td>
+            <td>{{ p.dni }}</td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="7" style="text-align: center;">No hay registros en la auditoría.</td>
+            <td colspan="8" style="text-align: center;">No hay registros en la auditoría.</td>
         </tr>
         {% endfor %}
     </tbody>

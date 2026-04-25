@@ -4,17 +4,17 @@
 {% block content %}
 <h1>Historial de Cambios: Cursos</h1>
 
-<p>Registro de inserciones, modificaciones y eliminaciones de la oferta académica.</p>
-
 <table border="1" style="width:100%; border-collapse: collapse; text-align: left; margin-top: 20px;">
-    <thead">
+    <thead>
         <tr>
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario</th>
-            <th>Nombre del Curso</th>
             <th>ID Curso</th>
-            <th>Precio Registrado</th>
+            <th>Nombre del Curso</th>
+            <th>ID Prof.</th>
+            <th>Capacidad</th>
+            <th>Precio</th>
         </tr>
     </thead>
     <tbody>
@@ -33,21 +33,19 @@
             </td>
             <td>{{ c.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td><code>{{ c.user_id }}</code></td>
-            <td>{{ c.nombre_curso }}</td>
             <td>{{ c.id_curso }}</td>
-            <td><strong>{{ "%.2f"|format(c.precio_curso) }}€</strong></td>
+            <td>{{ c.nombre_curso }}</td>
+            <td>{{ c.id_profesor }}</td>
+            <td>{{ c.capacidad_max }}</td>
+            <td><strong>{{ "%.2f"|format(c.precio) }}€</strong></td>
         </tr>
         {% else %}
         <tr>
-            <td colspan="6" style="text-align: center; padding: 20px;">
+            <td colspan="8" style="text-align: center; padding: 20px;">
                 No hay registros de movimientos en los cursos.
             </td>
         </tr>
         {% endfor %}
     </tbody>
 </table>
-
-<div style="margin-top: 20px;">
-    <a href="{{ url_for('cursos.list_') }}">← Volver a Cursos</a>
-</div>
 {% endblock %}

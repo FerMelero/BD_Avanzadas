@@ -48,8 +48,10 @@ class AuditProfesor:
     operacion: str
     stamp: date
     user_id: str
-    nombre: str
     id_profesor: int
+    nombre: str
+    apellido: str
+    fecha_nacimiento: date
     dni: str
 
 @dataclass(frozen=True)
@@ -57,15 +59,20 @@ class AuditAlumno:
     operacion: str
     stamp: date
     user_id: str
-    nombre: str
     id_alumno: int
+    nombre: str
+    apellido: str
+    fecha_nacimiento: date
     dni: str
+    dinero: float
 
 @dataclass(frozen=True)
 class AuditCurso:
     operacion: str
     stamp: date
     user_id: str
-    nombre_curso: str
     id_curso: int
-    precio_curso: str
+    nombre_curso: str
+    id_profesor: int
+    capacidad_max: int
+    precio: float

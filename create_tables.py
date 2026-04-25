@@ -1,13 +1,9 @@
 from __future__ import annotations
-
 import psycopg
-
 from config import load_config
 
-
-
-
 DDL = (
+    
     # Profesores
     '''CREATE TABLE IF NOT EXISTS profesores (
         id_profesor SERIAL PRIMARY KEY,
@@ -27,7 +23,7 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Cursos (1 profesor por curso)
+    # Cursos
     '''CREATE TABLE IF NOT EXISTS cursos (
         id_curso SERIAL PRIMARY KEY,
         nombre_curso VARCHAR(100) NOT NULL,
@@ -40,7 +36,7 @@ DDL = (
             ON DELETE CASCADE
     );''',
 
-    # Matrículas (N:M entre alumnos y cursos)
+    # Matrículas
     '''CREATE TABLE IF NOT EXISTS matriculas (
         id_alumno INTEGER NOT NULL,
         id_curso INTEGER NOT NULL,
@@ -53,12 +49,11 @@ DDL = (
             REFERENCES cursos (id_curso)
             ON UPDATE CASCADE
             ON DELETE CASCADE
-    );''',                         
-    '''
-    DROP VIEW IF EXISTS vista_alumnos_profesores_cursos;
-    ''',
-    '''
-    CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
+    );''',
+
+    
+    '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos;''',
+    '''CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
     SELECT
         a.nombre || ' ' || a.apellido AS nombre_alumno,
         p.nombre || ' ' || p.apellido AS nombre_profesor,
@@ -66,149 +61,118 @@ DDL = (
     FROM matriculas m
     JOIN alumnos a ON m.id_alumno = a.id_alumno
     JOIN cursos c ON m.id_curso = c.id_curso
-    JOIN profesores p ON c.id_profesor = p.id_profesor;
-    ''',
-    '''
-    CREATE TABLE IF NOT EXISTS audit_profesores(
-    operacion      CHAR(1) NOT NULL,
-    stamp          TIMESTAMP NOT NULL,
-    user_id        VARCHAR(100) NOT NULL,
-    nombre_profesor VARCHAR(100) NOT NULL,
-    id_profesor    INTEGER,
-    dni_profesor   VARCHAR(20)
-);''',
-'''
+    JOIN profesores p ON c.id_profesor = p.id_profesor;''',
 
-CREATE TABLE IF NOT EXISTS audit_alumnos(
-    operacion      CHAR(1) NOT NULL,
-    stamp          TIMESTAMP NOT NULL,
-    user_id        VARCHAR(100) NOT NULL,
-    nombre_alumno  VARCHAR(100) NOT NULL,
-    id_alumno      INTEGER,
-    dni_alumno     VARCHAR(20)
-);''',
 
-'''
-CREATE TABLE IF NOT EXISTS audit_cursos(
-    operacion      CHAR(1) NOT NULL,
-    stamp          TIMESTAMP NOT NULL,
-    user_id        VARCHAR(100) NOT NULL,
-    nombre_curso   VARCHAR(100) NOT NULL,
-    id_curso       INTEGER,
-    precio_curso   FLOAT
-);
-''',
+    '''CREATE TABLE IF NOT EXISTS audit_profesores(
+        operacion       CHAR(1) NOT NULL,
+        stamp           TIMESTAMP NOT NULL,
+        user_id         VARCHAR(100) NOT NULL,
+        id_profesor     INTEGER,
+        nombre          VARCHAR(100),
+        apellido        VARCHAR(100),
+        fecha_nacimiento DATE,
+        dni             VARCHAR(20)
+    );''',
 
-'''
-CREATE OR REPLACE FUNCTION fn_audit_profesores()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (TG_OP = 'DELETE') THEN
-        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
-        VALUES ('D', now(), current_user, OLD.nombre, OLD.id_profesor, OLD.dni);
-        RETURN OLD;
-    ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
-        VALUES ('U', now(), current_user, NEW.nombre, NEW.id_profesor, NEW.dni);
-        RETURN NEW;
-    ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO audit_profesores(operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor)
-        VALUES ('I', now(), current_user, NEW.nombre, NEW.id_profesor, NEW.dni);
-        RETURN NEW;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+    '''CREATE TABLE IF NOT EXISTS audit_alumnos(
+        operacion       CHAR(1) NOT NULL,
+        stamp           TIMESTAMP NOT NULL,
+        user_id         VARCHAR(100) NOT NULL,
+        id_alumno       INTEGER,
+        nombre          VARCHAR(100),
+        apellido        VARCHAR(100),
+        fecha_nacimiento DATE,
+        dni             VARCHAR(20),
+        dinero          FLOAT
+    );''',
 
-DROP TRIGGER IF EXISTS tr_audit_profesores ON profesores;
-CREATE TRIGGER tr_audit_profesores
-AFTER INSERT OR UPDATE OR DELETE ON profesores
-FOR EACH ROW EXECUTE FUNCTION fn_audit_profesores();
-''',
+    '''CREATE TABLE IF NOT EXISTS audit_cursos(
+        operacion       CHAR(1) NOT NULL,
+        stamp           TIMESTAMP NOT NULL,
+        user_id         VARCHAR(100) NOT NULL,
+        id_curso        INTEGER,
+        nombre_curso    VARCHAR(100),
+        id_profesor     INTEGER,
+        capacidad_max   INTEGER,
+        precio          FLOAT
+    );''',
 
-'''
-CREATE OR REPLACE FUNCTION fn_audit_alumnos()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (TG_OP = 'DELETE') THEN
-        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
-        VALUES ('D', now(), current_user, OLD.nombre, OLD.id_alumno, OLD.dni);
-        RETURN OLD;
-    ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
-        VALUES ('U', now(), current_user, NEW.nombre, NEW.id_alumno, NEW.dni);
-        RETURN NEW;
-    ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO audit_alumnos(operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno)
-        VALUES ('I', now(), current_user, NEW.nombre, NEW.id_alumno, NEW.dni);
-        RETURN NEW;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
 
-DROP TRIGGER IF EXISTS tr_audit_alumnos ON alumnos;
-CREATE TRIGGER tr_audit_alumnos
-AFTER INSERT OR UPDATE OR DELETE ON alumnos
-FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();
-''',
+    '''CREATE OR REPLACE FUNCTION fn_audit_profesores()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        r record;
+    BEGIN
+        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
+        INSERT INTO audit_profesores(operacion, stamp, user_id, id_profesor, nombre, apellido, fecha_nacimiento, dni)
+        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_profesor, r.nombre, r.apellido, r.fecha_nacimiento, r.dni);
+        RETURN r;
+    END;
+    $$ LANGUAGE plpgsql;''',
 
-'''
-CREATE OR REPLACE FUNCTION fn_audit_cursos()
-RETURNS TRIGGER AS $$
-BEGIN
-    IF (TG_OP = 'DELETE') THEN
-        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
-        VALUES ('D', now(), current_user, OLD.nombre_curso, OLD.id_curso, OLD.precio);
-        RETURN OLD;
-    ELSIF (TG_OP = 'UPDATE') THEN
-        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
-        VALUES ('U', now(), current_user, NEW.nombre_curso, NEW.id_curso, NEW.precio);
-        RETURN NEW;
-    ELSIF (TG_OP = 'INSERT') THEN
-        INSERT INTO audit_cursos(operacion, stamp, user_id, nombre_curso, id_curso, precio_curso)
-        VALUES ('I', now(), current_user, NEW.nombre_curso, NEW.id_curso, NEW.precio);
-        RETURN NEW;
-    END IF;
-    RETURN NULL;
-END;
-$$ LANGUAGE plpgsql;
+    '''CREATE OR REPLACE FUNCTION fn_audit_alumnos()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        r record;
+    BEGIN
+        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
+        INSERT INTO audit_alumnos(operacion, stamp, user_id, id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero)
+        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_alumno, r.nombre, r.apellido, r.fecha_nacimiento, r.dni, r.dinero);
+        RETURN r;
+    END;
+    $$ LANGUAGE plpgsql;''',
 
-DROP TRIGGER IF EXISTS tr_audit_cursos ON cursos;
-CREATE TRIGGER tr_audit_cursos
-AFTER INSERT OR UPDATE OR DELETE ON cursos
-FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();
-''',
+    '''CREATE OR REPLACE FUNCTION fn_audit_cursos()
+    RETURNS TRIGGER AS $$
+    DECLARE
+        r record;
+    BEGIN
+        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
+        INSERT INTO audit_cursos(operacion, stamp, user_id, id_curso, nombre_curso, id_profesor, capacidad_max, precio)
+        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_curso, r.nombre_curso, r.id_profesor, r.capacidad_max, r.precio);
+        RETURN r;
+    END;
+    $$ LANGUAGE plpgsql;''',
 
-'''
--- Índices para búsquedas filtradas (mejoran ILIKE y comparaciones numéricas)
+    # --- TRIGGERS ---
 
-CREATE INDEX IF NOT EXISTS idx_alumnos_nombre ON alumnos (nombre);
-CREATE INDEX IF NOT EXISTS idx_alumnos_apellido ON alumnos (apellido);
-CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);
+    '''DROP TRIGGER IF EXISTS tr_audit_profesores ON profesores;
+    CREATE TRIGGER tr_audit_profesores
+    AFTER INSERT OR UPDATE OR DELETE ON profesores
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_profesores();''',
 
-CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);
-CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);
+    '''DROP TRIGGER IF EXISTS tr_audit_alumnos ON alumnos;
+    CREATE TRIGGER tr_audit_alumnos
+    AFTER INSERT OR UPDATE OR DELETE ON alumnos
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();''',
 
-CREATE INDEX IF NOT EXISTS idx_cursos_nombre ON cursos (nombre_curso);
-CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);
-CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);
+    '''DROP TRIGGER IF EXISTS tr_audit_cursos ON cursos;
+    CREATE TRIGGER tr_audit_cursos
+    AFTER INSERT OR UPDATE OR DELETE ON cursos
+    FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
 
-CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);
-CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);
-'''
+    # --- ÍNDICES ---
 
+    '''CREATE INDEX IF NOT EXISTS idx_alumnos_nombre ON alumnos (nombre);''',
+    '''CREATE INDEX IF NOT EXISTS idx_alumnos_apellido ON alumnos (apellido);''',
+    '''CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);''',
+    '''CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);''',
+    '''CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);''',
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_nombre ON cursos (nombre_curso);''',
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);''',
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);''',
+    '''CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);''',
+    '''CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);'''
 )
 
 def create_tables() -> None:
-    """Create demo tables for the lab (idempotent)."""
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
             for stmt in DDL:
                 cur.execute(stmt)
-    print("Tables created (or already existed).")
-
+    print("Base de datos configurada correctamente (Tablas, Vistas, Auditoría e Índices).")
 
 if __name__ == "__main__":
     create_tables()

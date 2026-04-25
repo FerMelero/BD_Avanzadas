@@ -280,17 +280,17 @@ def view_audit_profesores():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-    SELECT operacion, stamp, user_id, nombre_profesor, id_profesor, dni_profesor 
-    FROM audit_profesores 
-    ORDER BY stamp DESC;
-""")
+                SELECT operacion, stamp, user_id, id_profesor, nombre, apellido, fecha_nacimiento, dni 
+                FROM audit_profesores 
+                ORDER BY stamp DESC;
+            """)
             return [AuditProfesor(*r) for r in cur.fetchall()]
 
 def view_audit_alumnos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT operacion, stamp, user_id, nombre_alumno, id_alumno, dni_alumno
+                SELECT operacion, stamp, user_id, id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero
                 FROM audit_alumnos 
                 ORDER BY stamp DESC;
             """)
@@ -300,7 +300,7 @@ def view_audit_cursos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT operacion, stamp, user_id, nombre_curso, id_curso, precio_curso
+                SELECT operacion, stamp, user_id, id_curso, nombre_curso, id_profesor, capacidad_max, precio
                 FROM audit_cursos 
                 ORDER BY stamp DESC;
             """)

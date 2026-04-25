@@ -3,9 +3,11 @@
 
 {% block content %}
 {% if curso %}
-    <h2>{{ curso.nombre_curso }}</h2>
-    <h3>Alumnos matriculados</h3>
-    <ul>
+    <h2 style="color: #ffffff;">{{ curso.nombre_curso.es }}</h2>
+    <h2 style="color: #ffffff;">{{ curso.nombre_curso.en }}</h2>
+    
+    <h3 style="color: #ffffff;">Alumnos matriculados</h3>
+    <ul style="color: #ffffff;">
     {% for a in alumnos %}
         <li>{{ a.nombre }} {{ a.apellido }}</li>
     {% else %}
@@ -13,6 +15,6 @@
     {% endfor %}
     </ul>
 {% else %}
-    <p>No existe ese curso.</p>
+    <p style="color: #ffffff;">No existe ese curso.</p>
 {% endif %}
 {% endblock %}

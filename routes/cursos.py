@@ -12,6 +12,7 @@ cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
 @cursos_bp.route("")
 def list_():
     """Lista de cursos con búsqueda opcional."""
+    # 1. Captura de parámetros
     nombre = request.args.get("nombre", None)
     id_profesor = request.args.get("id_profesor", None)
     id_curso = request.args.get("id_curso", None)
@@ -22,9 +23,10 @@ def list_():
     limit = request.args.get("limit", 10, type=int)
     offset = (page - 1) * limit
     
-    # Normalizar strings vacíos
+    # 2. Normalización de strings y conversión manual (sin funciones extra)
     if nombre is not None:
         nombre = nombre.strip() or None
+        
     if id_profesor and id_profesor.strip():
         try:
             id_profesor = int(id_profesor)
@@ -65,7 +67,8 @@ def list_():
     else:
         capacidad_min = None
     
-    # Si hay parámetros de búsqueda, usar búsqueda filtrada
+    # 3. Lógica de búsqueda
+    # Verificamos si hay algún parámetro para filtrar
     if nombre or id_profesor is not None or id_curso is not None or precio_min is not None or precio_max is not None or capacidad_min is not None:
         cursos = search_cursos(
             nombre=nombre,
@@ -82,6 +85,7 @@ def list_():
         cursos = search_cursos(offset=offset, limit=limit)
         search_active = False
     
+    # 4. Renderizado
     return render_template(
         "cursos.html",
         cursos=cursos,
@@ -113,14 +117,16 @@ def view_curso(id_curso):
 def new_curso():
     profesores = get_profesores()
     if request.method == "POST":
-        nombre_curso = request.form["nombre_curso"]
+        nombres = {
+        "es" : request.form["nombre_es"],
+        "en" : request.form["nombre_en"]}
         id_profesor = request.form["id_profesor"]
         capacidad_max = int(request.form["capacidad_max"])
         precio = float(request.form["precio"])
             
         if precio < 0:
             return "Error: El precio no puede ser negativo", 400 
-        curso_id = crear_curso(nombre_curso, id_profesor, capacidad_max, precio)
+        curso_id = crear_curso(nombres, id_profesor, capacidad_max, precio)
 
         if curso_id: 
             return redirect(url_for("cursos.view_curso", id_curso=curso_id))

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import json
+
 from dataclasses import dataclass
 from datetime import date
 
@@ -72,7 +74,7 @@ class AuditCurso:
     stamp: date
     user_id: str
     id_curso: int
-    nombre_curso: str
+    nombres_multi: json
     id_profesor: int
     capacidad_max: int
     precio: float

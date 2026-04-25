@@ -11,7 +11,8 @@
             <th>Fecha y Hora</th>
             <th>Usuario</th>
             <th>ID Curso</th>
-            <th>Nombre del Curso</th>
+            <th>Nombre Español</th>
+            <th>Nombre Inglés</th>
             <th>ID Prof.</th>
             <th>Capacidad</th>
             <th>Precio</th>
@@ -34,7 +35,8 @@
             <td>{{ c.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td><code>{{ c.user_id }}</code></td>
             <td>{{ c.id_curso }}</td>
-            <td>{{ c.nombre_curso }}</td>
+            <td>{{ c.nombres_multi.es }}</td>
+            <td>{{ c.nombres_multi.en }}</td>
             <td>{{ c.id_profesor }}</td>
             <td>{{ c.capacidad_max }}</td>
             <td><strong>{{ "%.2f"|format(c.precio) }}€</strong></td>

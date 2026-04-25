@@ -3,7 +3,9 @@ import psycopg
 from config import load_config
 
 DDL = (
-    
+    '''DROP TABLE IF EXISTS cursos CASCADE;''',
+    '''CREATE EXTENSION IF NOT EXISTS unaccent;''',
+
     # Profesores
     '''CREATE TABLE IF NOT EXISTS profesores (
         id_profesor SERIAL PRIMARY KEY,
@@ -23,10 +25,10 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Cursos
+    # Cursos (Actualizado a nombres_multi JSONB para multi-idioma)
     '''CREATE TABLE IF NOT EXISTS cursos (
         id_curso SERIAL PRIMARY KEY,
-        nombre_curso VARCHAR(100) NOT NULL,
+        nombres_multi JSONB NOT NULL,
         id_profesor INTEGER NOT NULL,
         capacidad_max INTEGER NOT NULL,
         precio FLOAT NOT NULL,
@@ -57,7 +59,7 @@ DDL = (
     SELECT
         a.nombre || ' ' || a.apellido AS nombre_alumno,
         p.nombre || ' ' || p.apellido AS nombre_profesor,
-        c.nombre_curso AS nombre_curso
+        c.nombres_multi->>'es' AS nombre_curso
     FROM matriculas m
     JOIN alumnos a ON m.id_alumno = a.id_alumno
     JOIN cursos c ON m.id_curso = c.id_curso
@@ -92,7 +94,7 @@ DDL = (
         stamp           TIMESTAMP NOT NULL,
         user_id         VARCHAR(100) NOT NULL,
         id_curso        INTEGER,
-        nombre_curso    VARCHAR(100),
+        nombres_multi   JSONB,
         id_profesor     INTEGER,
         capacidad_max   INTEGER,
         precio          FLOAT
@@ -129,8 +131,8 @@ DDL = (
         r record;
     BEGIN
         r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
-        INSERT INTO audit_cursos(operacion, stamp, user_id, id_curso, nombre_curso, id_profesor, capacidad_max, precio)
-        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_curso, r.nombre_curso, r.id_profesor, r.capacidad_max, r.precio);
+        INSERT INTO audit_cursos(operacion, stamp, user_id, id_curso, nombres_multi, id_profesor, capacidad_max, precio)
+        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_curso, r.nombres_multi, r.id_profesor, r.capacidad_max, r.precio);
         RETURN r;
     END;
     $$ LANGUAGE plpgsql;''',
@@ -159,7 +161,10 @@ DDL = (
     '''CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);''',
     '''CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);''',
     '''CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);''',
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_nombre ON cursos (nombre_curso);''',
+    
+    # Índice GIN para búsqueda rápida en JSONB
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
+    
     '''CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);''',
     '''CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);''',
     '''CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);''',

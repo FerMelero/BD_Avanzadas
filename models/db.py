@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import psycopg
+import json
 
 from config import load_config
 
@@ -30,7 +31,7 @@ def get_cursos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos ORDER BY id_curso;"
+                "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos ORDER BY id_curso;"
             )
             return [Cursos(*r) for r in cur.fetchall()]
 
@@ -121,7 +122,7 @@ def get_cursos_by_id(id_curso):
         with conn.cursor() as cur:
             print("Buscando curso con id:", id_curso)
             cur.execute(
-            "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE id_curso=%s;",
+            "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE id_curso=%s;",
             (id_curso,) # debemos poner %s(id_curso, ) para que seleccione bien el ID
         )
             row = cur.fetchone()
@@ -300,20 +301,20 @@ def view_audit_cursos():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT operacion, stamp, user_id, id_curso, nombre_curso, id_profesor, capacidad_max, precio
+                SELECT operacion, stamp, user_id, id_curso, nombres_multi, id_profesor, capacidad_max, precio
                 FROM audit_cursos 
                 ORDER BY stamp DESC;
             """)
             return [AuditCurso(*r) for r in cur.fetchall()]
 
-def crear_curso(nombre_curso, id_profesor, precio, capacidad_max):
+def crear_curso(nombres_multi, id_profesor, precio, capacidad_max):
     with get_connection() as conn:
         with conn.cursor() as cur:
             try:
                 cur.execute("""
-                    INSERT INTO cursos (nombre_curso, id_profesor, precio, capacidad_max) 
-                    VALUES (%s, %s, %s, %s) RETURNING id_curso;
-                """, (nombre_curso, id_profesor, precio, capacidad_max))
+                INSERT INTO cursos (nombres_multi, id_profesor, capacidad_max, precio)
+                VALUES (%s, %s, %s, %s) RETURNING id_curso;
+            """, (psycopg.types.json.Jsonb(nombres_multi), id_profesor, capacidad_max, precio))
                 
                 id_curso = cur.fetchone()[0]
                 conn.commit()
@@ -523,13 +524,12 @@ def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=N
     """Búsqueda segura y parametrizada de cursos con filtros string, numéricos, IDs y paginación."""
     with get_connection() as conn:
         with conn.cursor() as cur:
-            sql = "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE 1=1"
+            sql = "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE 1=1"
             params = []
             
-            if nombre is not None:
-                nombre = nombre.strip() or None
             if nombre:
-                sql += " AND nombre_curso ILIKE %s"
+                sql += " AND (nombres_multi->>'es' ILIKE %s OR nombres_multi->>'en' ILIKE %s)"
+                params.append(f"%{nombre}%")
                 params.append(f"%{nombre}%")
             
             if precio_min is not None:
@@ -563,7 +563,7 @@ def search_matriculas(id_curso=None, id_alumno=None, offset=0, limit=10):
     with get_connection() as conn:
         with conn.cursor() as cur:
             sql = """
-                SELECT m.id_alumno, m.id_curso, a.nombre, a.apellido, c.nombre_curso, c.precio
+                SELECT m.id_alumno, m.id_curso, a.nombre, a.apellido, c.nombres_multi, c.precio
                 FROM matriculas m
                 JOIN alumnos a ON m.id_alumno = a.id_alumno
                 JOIN cursos c ON m.id_curso = c.id_curso

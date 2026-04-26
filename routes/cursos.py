@@ -138,12 +138,13 @@ def new_curso():
 @cursos_bp.route("/modificar/<int:id_curso>", methods=["GET", "POST"])
 def edit_curso(id_curso):
     if request.method == "POST":
-        nombre = request.form["nombre_curso"]
+        nombres = {"es" : request.form["nombre_curso_es"],
+        "en" : request.form["nombre_curso_en"]}
         id_prof = request.form["id_profesor"]
         precio = float(request.form["precio"])
         capacidad = int(request.form["capacidad_max"])
 
-        if modificar_curso(id_curso, nombre, id_prof, precio, capacidad):
+        if modificar_curso(id_curso, nombres, id_prof, precio, capacidad):
             return redirect(url_for("cursos.view_curso", id_curso = id_curso))
         else:
             return "Error al actualizar curso", 500

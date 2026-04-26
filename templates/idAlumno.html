@@ -18,7 +18,7 @@
 <ul>
 
 {% for c in cursos %}
-    <li>{{ c.nombre_curso }}, {{c.id_curso}}</li>
+    <li>{{ c.nombre_curso.es }} ({{ c.nombre_curso.en }}), {{c.id_curso}}</li>
 {% else %}
     <li>No está inscrito a cursos</li>
 {% endfor %}

@@ -3,7 +3,7 @@ import psycopg
 from config import load_config
 
 DDL = (
-    '''DROP TABLE IF EXISTS cursos CASCADE;''',
+    '''CREATE EXTENSION IF NOT EXISTS pg_trgm;''',
     '''CREATE EXTENSION IF NOT EXISTS unaccent;''',
 
     # Profesores

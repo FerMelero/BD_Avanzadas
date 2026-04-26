@@ -79,7 +79,7 @@ def get_cursos_by_alumno(id_alumno):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT c.id_curso, c.nombre_curso, c.id_profesor, c.precio, c.capacidad_max
+                SELECT c.id_curso, c.nombres_multi, c.id_profesor, c.precio, c.capacidad_max
                 FROM cursos c
                 JOIN matriculas m ON c.id_curso = m.id_curso
                 WHERE m.id_alumno = %s;
@@ -110,7 +110,7 @@ def get_cursos_by_profesor(id_profesor): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT id_curso, nombre_curso, id_profesor, precio, capacidad_max FROM cursos WHERE id_profesor=%s;",
+            "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE id_profesor=%s;",
             (id_profesor,) # debemos poner %s(id_profesor, ) para que seleccione bien el ID
         )
             rows = cur.fetchall()
@@ -173,7 +173,7 @@ def crear_matricula(id_alumno: int, id_curso: int):
                 nombre_alumno, dinero = alumno # si existe el alumno, guardamos y seguimos
 
                 # ahora sacamos los datos del curso
-                cur.execute("SELECT nombre_curso, precio, capacidad_max FROM cursos WHERE id_curso=%s FOR UPDATE;", (id_curso,))
+                cur.execute("SELECT nombres_multi, precio, capacidad_max FROM cursos WHERE id_curso=%s FOR UPDATE;", (id_curso,))
                 curso = cur.fetchone()
 
                 if not curso:
@@ -382,9 +382,9 @@ def modificar_curso(id_curso, nombre, id_profesor, precio, capacidad):
             try:
                 cur.execute("""
                     UPDATE cursos 
-                    SET nombre_curso = %s, id_profesor = %s, precio = %s, capacidad_max = %s
+                    SET nombres_multi = %s, id_profesor = %s, precio = %s, capacidad_max = %s
                     WHERE id_curso = %s;
-                """, (nombre, id_profesor, precio, capacidad, id_curso))
+                """, (psycopg.types.json.Jsonb(nombre), id_profesor, precio, capacidad, id_curso))
                 conn.commit()
                 return True
             except Exception as e:
@@ -528,9 +528,16 @@ def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=N
             params = []
             
             if nombre:
-                sql += " AND (nombres_multi->>'es' ILIKE %s OR nombres_multi->>'en' ILIKE %s)"
-                params.append(f"%{nombre}%")
-                params.append(f"%{nombre}%")
+                
+                sql += """ AND (
+                    unaccent(nombres_multi->>'es') ILIKE unaccent(%s) OR 
+                    unaccent(nombres_multi->>'en') ILIKE unaccent(%s) OR
+                    unaccent(nombres_multi->>'es') %% unaccent(%s)
+                )"""
+                termino_like = f"%{nombre}%"
+                params.append(termino_like) 
+                params.append(termino_like) 
+                params.append(nombre)
             
             if precio_min is not None:
                 sql += " AND precio >= %s"
@@ -552,7 +559,13 @@ def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=N
                 sql += " AND id_curso = %s"
                 params.append(id_curso)
             
-            sql += " ORDER BY id_curso LIMIT %s OFFSET %s"
+            if nombre:
+                sql += " ORDER BY similarity(unaccent(nombres_multi->>'es'), unaccent(%s)) DESC"
+                params.append(nombre)
+            else:
+                sql += " ORDER BY id_curso"
+                
+            sql += " LIMIT %s OFFSET %s"
             params.extend([limit, offset])
             
             cur.execute(sql, params)

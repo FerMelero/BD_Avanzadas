@@ -2,12 +2,12 @@
 {% block title %}Confirmar Eliminación de Curso{% endblock %}
 
 {% block content %}
-<div style="max-width: 550px; margin: 50px auto; border: 2px solid #dc3545; padding: 25px; border-radius: 10px; text-align: center; background-color: #fff5f5;">
+<div style="max-width: 550px; margin: 50px auto; border: 2px solid #dc3545; padding: 25px; border-radius: 10px; text-align: center; background-color: #000000;">
     <h1 style="color: #dc3545; margin-top: 0;">Atención</h1>
     
     <p style="font-size: 1.1em;">
         ¿Estás seguro de que deseas eliminar el curso: <br>
-        <strong style="font-size: 1.3em;">"{{ curso.nombre_curso }}"</strong>?
+        <strong style="font-size: 1.3em;">"{{ curso.nombre_curso.es }} ({{ curso.nombre_curso.en }})"</strong>?
     </p>
 
     <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">

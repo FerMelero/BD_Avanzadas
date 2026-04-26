@@ -1,11 +1,19 @@
 from __future__ import annotations
 import psycopg
 from config import load_config
-
 DDL = (
-    '''CREATE EXTENSION IF NOT EXISTS pg_trgm;''',
-    '''CREATE EXTENSION IF NOT EXISTS unaccent;''',
+    # --- EXTENSIONES  ---
+    '''CREATE EXTENSION IF NOT EXISTS pg_trgm;''',    # Fuzzy Search (similitud)
+    '''CREATE EXTENSION IF NOT EXISTS unaccent;''',   # ignorar tildes
 
+    # --- FUNCIONES  ---
+    '''CREATE OR REPLACE FUNCTION unaccent_immutable(text)
+    RETURNS text AS $$
+        SELECT unaccent($1);
+    $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE;''',
+
+    # --- TABLAS PRINCIPALES ---
+    
     # Profesores
     '''CREATE TABLE IF NOT EXISTS profesores (
         id_profesor SERIAL PRIMARY KEY,
@@ -25,7 +33,7 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Cursos (Actualizado a nombres_multi JSONB para multi-idioma)
+    # Cursos
     '''CREATE TABLE IF NOT EXISTS cursos (
         id_curso SERIAL PRIMARY KEY,
         nombres_multi JSONB NOT NULL,
@@ -53,7 +61,7 @@ DDL = (
             ON DELETE CASCADE
     );''',
 
-    
+    # --- VISTAS ---
     '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos;''',
     '''CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
     SELECT
@@ -65,7 +73,7 @@ DDL = (
     JOIN cursos c ON m.id_curso = c.id_curso
     JOIN profesores p ON c.id_profesor = p.id_profesor;''',
 
-
+    # --- TABLAS DE AUDITORÍA ---
     '''CREATE TABLE IF NOT EXISTS audit_profesores(
         operacion       CHAR(1) NOT NULL,
         stamp           TIMESTAMP NOT NULL,
@@ -100,7 +108,7 @@ DDL = (
         precio          FLOAT
     );''',
 
-
+    # --- FUNCIONES DE AUDITORÍA (TRIGGERS) ---
     '''CREATE OR REPLACE FUNCTION fn_audit_profesores()
     RETURNS TRIGGER AS $$
     DECLARE
@@ -138,7 +146,6 @@ DDL = (
     $$ LANGUAGE plpgsql;''',
 
     # --- TRIGGERS ---
-
     '''DROP TRIGGER IF EXISTS tr_audit_profesores ON profesores;
     CREATE TRIGGER tr_audit_profesores
     AFTER INSERT OR UPDATE OR DELETE ON profesores
@@ -155,20 +162,27 @@ DDL = (
     FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
 
     # --- ÍNDICES ---
-
     '''CREATE INDEX IF NOT EXISTS idx_alumnos_nombre ON alumnos (nombre);''',
     '''CREATE INDEX IF NOT EXISTS idx_alumnos_apellido ON alumnos (apellido);''',
     '''CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);''',
     '''CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);''',
     '''CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);''',
     
-    # Índice GIN para búsqueda rápida en JSONB
+    # Índice GIN para búsqueda rápida de claves en JSONB
     '''CREATE INDEX IF NOT EXISTS idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
     
+    # Índices GIST para FUZZY ignorando acentos
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_fuzzy_es 
+       ON cursos USING gist (unaccent_immutable(nombres_multi->>'es') gist_trgm_ops);''',
+    
+    '''CREATE INDEX IF NOT EXISTS idx_cursos_fuzzy_en 
+       ON cursos USING gist (unaccent_immutable(nombres_multi->>'en') gist_trgm_ops);''',
+
     '''CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);''',
     '''CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);''',
     '''CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);''',
-    '''CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);'''
+    '''CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);''',
+
 )
 
 def create_tables() -> None:

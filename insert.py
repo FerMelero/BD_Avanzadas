@@ -144,7 +144,5 @@ Main
 '''
 
 if __name__ == "__main__":
-    profesores_ids = final_insert_profesores(50)
-    alumnos_ids = final_insert_alumnos(1000)
-    cursos_ids = final_insert_cursos(100, profesores_ids)
-    final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=30)
+    final_insert_profesores(50)
+    final_insert_alumnos(1000)

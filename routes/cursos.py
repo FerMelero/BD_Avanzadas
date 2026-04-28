@@ -116,6 +116,7 @@ def view_curso(id_curso):
 @cursos_bp.route("/nuevo", methods=["GET", "POST"])
 def new_curso():
     profesores = get_profesores()
+    print(profesores)
     if request.method == "POST":
         nombres = {
         "es" : request.form["nombre_es"],

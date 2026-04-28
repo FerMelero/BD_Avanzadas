@@ -637,6 +637,4 @@ def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_cur
 
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
-    print(cursos_alumnos_by_profesor(20))
-    print(resumen_alumno(20))
-    print(view_audit_alumnos())
+    print(get_alumnos())

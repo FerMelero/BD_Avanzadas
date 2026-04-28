@@ -19,7 +19,7 @@
             <option value="" disabled selected>-- Selecciona curso --</option>
             {% for cur in cursos %}
                 <option value="{{ cur.id_curso }}">
-                    {{ cur.nombre_curso }}
+                    {{ cur.nombre_curso.es }} ({{ cur.nombre_curso.en }})
                 </option>
             {% endfor %}
         </select>

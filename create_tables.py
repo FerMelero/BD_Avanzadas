@@ -2,6 +2,7 @@ from __future__ import annotations
 import psycopg
 from config import load_config
 DDL = (
+    # 1. LIMPIEZA TOTAL (Elimina tablas y vistas previas para evitar conflictos)
     '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos CASCADE;''',
     '''DROP TABLE IF EXISTS matriculas CASCADE;''',
     '''DROP TABLE IF EXISTS cursos CASCADE;''',
@@ -10,20 +11,23 @@ DDL = (
     '''DROP TABLE IF EXISTS audit_profesores CASCADE;''',
     '''DROP TABLE IF EXISTS audit_alumnos CASCADE;''',
     '''DROP TABLE IF EXISTS audit_cursos CASCADE;''',
-    # --- EXTENSIONES  ---
-    '''CREATE EXTENSION IF NOT EXISTS pg_trgm;''',    # Fuzzy Search (similitud)
-    '''CREATE EXTENSION IF NOT EXISTS unaccent;''',   # ignorar tildes
 
-    # --- FUNCIONES  ---
+    # 2. EXTENSIONES DEL TEMA 12
+    # Forzamos el esquema public para evitar errores de "función no encontrada"
+    '''CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;''',
+    '''CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;''',
+
+    # 3. FUNCIÓN DE SOPORTE PARA ÍNDICES (TEMA 12)
+    # Necesaria para indexar unaccent, ya que por defecto no es IMMUTABLE
     '''CREATE OR REPLACE FUNCTION unaccent_immutable(text)
     RETURNS text AS $$
-        SELECT unaccent($1);
+        SELECT public.unaccent($1);
     $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE;''',
 
-    # --- TABLAS PRINCIPALES ---
+    # 4. TABLAS DE LA APLICACIÓN
     
-    # Profesores
-    '''CREATE TABLE IF NOT EXISTS profesores (
+    # Tabla Profesores
+    '''CREATE TABLE profesores (
         id_profesor SERIAL PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
         apellido VARCHAR(100) NOT NULL,
@@ -31,8 +35,8 @@ DDL = (
         dni VARCHAR(20) NOT NULL UNIQUE
     );''',
 
-    # Alumnos
-    '''CREATE TABLE IF NOT EXISTS alumnos (
+    # Tabla Alumnos
+    '''CREATE TABLE alumnos (
         id_alumno SERIAL PRIMARY KEY,
         nombre VARCHAR(100) NOT NULL,
         apellido VARCHAR(100) NOT NULL,
@@ -41,156 +45,66 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Cursos
-    '''CREATE TABLE IF NOT EXISTS cursos (
+    # Tabla Cursos (Multi-idioma con JSONB - Requisito Tema 12)
+    '''CREATE TABLE cursos (
         id_curso SERIAL PRIMARY KEY,
         nombres_multi JSONB NOT NULL,
-        id_profesor INTEGER NOT NULL,
+        id_profesor INTEGER NOT NULL REFERENCES profesores(id_profesor) ON DELETE CASCADE,
         capacidad_max INTEGER NOT NULL,
-        precio FLOAT NOT NULL,
-        FOREIGN KEY (id_profesor)
-            REFERENCES profesores (id_profesor)
-            ON UPDATE CASCADE
-            ON DELETE CASCADE
+        precio FLOAT NOT NULL
     );''',
 
-    # Matrículas
-    '''CREATE TABLE IF NOT EXISTS matriculas (
-        id_alumno INTEGER NOT NULL,
-        id_curso INTEGER NOT NULL,
-        PRIMARY KEY (id_alumno, id_curso),
-        FOREIGN KEY (id_alumno)
-            REFERENCES alumnos (id_alumno)
-            ON UPDATE CASCADE
-            ON DELETE CASCADE,
-        FOREIGN KEY (id_curso)
-            REFERENCES cursos (id_curso)
-            ON UPDATE CASCADE
-            ON DELETE CASCADE
+    # Tabla Matrículas (Relación N:M)
+    '''CREATE TABLE matriculas (
+        id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno) ON DELETE CASCADE,
+        id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
+        PRIMARY KEY (id_alumno, id_curso)
     );''',
 
-    # --- VISTAS ---
-    '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos;''',
-    '''CREATE OR REPLACE VIEW vista_alumnos_profesores_cursos AS
-    SELECT
-        a.nombre || ' ' || a.apellido AS nombre_alumno,
-        p.nombre || ' ' || p.apellido AS nombre_profesor,
-        c.nombres_multi->>'es' AS nombre_curso
+    # 5. AUDITORÍA (Triggers y Tablas)
+    '''CREATE TABLE audit_cursos(
+        operacion CHAR(1), stamp TIMESTAMP, user_id VARCHAR(100), 
+        id_curso INTEGER, nombres_multi JSONB, id_profesor INTEGER, 
+        capacidad_max INTEGER, precio FLOAT
+    );''',
+
+    '''CREATE OR REPLACE FUNCTION fn_audit_cursos() RETURNS TRIGGER AS $$
+    DECLARE r record;
+    BEGIN
+        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
+        INSERT INTO audit_cursos VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, 
+        r.id_curso, r.nombres_multi, r.id_profesor, r.capacidad_max, r.precio);
+        RETURN r;
+    END; $$ LANGUAGE plpgsql;''',
+
+    '''CREATE TRIGGER tr_audit_cursos AFTER INSERT OR UPDATE OR DELETE ON cursos
+       FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
+
+    # 6. VISTA (Extracción de datos del JSONB)
+    '''CREATE VIEW vista_alumnos_profesores_cursos AS
+    SELECT a.nombre || ' ' || a.apellido AS nombre_alumno,
+           p.nombre || ' ' || p.apellido AS nombre_profesor,
+           c.nombres_multi->>'es' AS nombre_curso
     FROM matriculas m
     JOIN alumnos a ON m.id_alumno = a.id_alumno
     JOIN cursos c ON m.id_curso = c.id_curso
     JOIN profesores p ON c.id_profesor = p.id_profesor;''',
 
-    # --- TABLAS DE AUDITORÍA ---
-    '''CREATE TABLE IF NOT EXISTS audit_profesores(
-        operacion       CHAR(1) NOT NULL,
-        stamp           TIMESTAMP NOT NULL,
-        user_id         VARCHAR(100) NOT NULL,
-        id_profesor     INTEGER,
-        nombre          VARCHAR(100),
-        apellido        VARCHAR(100),
-        fecha_nacimiento DATE,
-        dni             VARCHAR(20)
-    );''',
-
-    '''CREATE TABLE IF NOT EXISTS audit_alumnos(
-        operacion       CHAR(1) NOT NULL,
-        stamp           TIMESTAMP NOT NULL,
-        user_id         VARCHAR(100) NOT NULL,
-        id_alumno       INTEGER,
-        nombre          VARCHAR(100),
-        apellido        VARCHAR(100),
-        fecha_nacimiento DATE,
-        dni             VARCHAR(20),
-        dinero          FLOAT
-    );''',
-
-    '''CREATE TABLE IF NOT EXISTS audit_cursos(
-        operacion       CHAR(1) NOT NULL,
-        stamp           TIMESTAMP NOT NULL,
-        user_id         VARCHAR(100) NOT NULL,
-        id_curso        INTEGER,
-        nombres_multi   JSONB,
-        id_profesor     INTEGER,
-        capacidad_max   INTEGER,
-        precio          FLOAT
-    );''',
-
-    # --- FUNCIONES DE AUDITORÍA (TRIGGERS) ---
-    '''CREATE OR REPLACE FUNCTION fn_audit_profesores()
-    RETURNS TRIGGER AS $$
-    DECLARE
-        r record;
-    BEGIN
-        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
-        INSERT INTO audit_profesores(operacion, stamp, user_id, id_profesor, nombre, apellido, fecha_nacimiento, dni)
-        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_profesor, r.nombre, r.apellido, r.fecha_nacimiento, r.dni);
-        RETURN r;
-    END;
-    $$ LANGUAGE plpgsql;''',
-
-    '''CREATE OR REPLACE FUNCTION fn_audit_alumnos()
-    RETURNS TRIGGER AS $$
-    DECLARE
-        r record;
-    BEGIN
-        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
-        INSERT INTO audit_alumnos(operacion, stamp, user_id, id_alumno, nombre, apellido, fecha_nacimiento, dni, dinero)
-        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_alumno, r.nombre, r.apellido, r.fecha_nacimiento, r.dni, r.dinero);
-        RETURN r;
-    END;
-    $$ LANGUAGE plpgsql;''',
-
-    '''CREATE OR REPLACE FUNCTION fn_audit_cursos()
-    RETURNS TRIGGER AS $$
-    DECLARE
-        r record;
-    BEGIN
-        r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
-        INSERT INTO audit_cursos(operacion, stamp, user_id, id_curso, nombres_multi, id_profesor, capacidad_max, precio)
-        VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, r.id_curso, r.nombres_multi, r.id_profesor, r.capacidad_max, r.precio);
-        RETURN r;
-    END;
-    $$ LANGUAGE plpgsql;''',
-
-    # --- TRIGGERS ---
-    '''DROP TRIGGER IF EXISTS tr_audit_profesores ON profesores;
-    CREATE TRIGGER tr_audit_profesores
-    AFTER INSERT OR UPDATE OR DELETE ON profesores
-    FOR EACH ROW EXECUTE FUNCTION fn_audit_profesores();''',
-
-    '''DROP TRIGGER IF EXISTS tr_audit_alumnos ON alumnos;
-    CREATE TRIGGER tr_audit_alumnos
-    AFTER INSERT OR UPDATE OR DELETE ON alumnos
-    FOR EACH ROW EXECUTE FUNCTION fn_audit_alumnos();''',
-
-    '''DROP TRIGGER IF EXISTS tr_audit_cursos ON cursos;
-    CREATE TRIGGER tr_audit_cursos
-    AFTER INSERT OR UPDATE OR DELETE ON cursos
-    FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
-
-    # --- ÍNDICES ---
-    '''CREATE INDEX IF NOT EXISTS idx_alumnos_nombre ON alumnos (nombre);''',
-    '''CREATE INDEX IF NOT EXISTS idx_alumnos_apellido ON alumnos (apellido);''',
-    '''CREATE INDEX IF NOT EXISTS idx_alumnos_dinero ON alumnos (dinero);''',
-    '''CREATE INDEX IF NOT EXISTS idx_profesores_nombre ON profesores (nombre);''',
-    '''CREATE INDEX IF NOT EXISTS idx_profesores_apellido ON profesores (apellido);''',
+    # 7. ÍNDICES AVANZADOS (TEMA 12 - RENDIMIENTO)
     
-    # Índice GIN para búsqueda rápida de claves en JSONB
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
+    # Índice GIN para búsquedas por clave/valor dentro del JSONB
+    '''CREATE INDEX idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
     
-    # Índices GIST para FUZZY ignorando acentos
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_fuzzy_es 
-       ON cursos USING gist (unaccent_immutable(nombres_multi->>'es') gist_trgm_ops);''',
+    # Índices GIST para Fuzzy Search e ignorar acentos simultáneamente
+    '''CREATE INDEX idx_cursos_fuzzy_es ON cursos 
+       USING gist (unaccent_immutable(nombres_multi->>'es') gist_trgm_ops);''',
     
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_fuzzy_en 
-       ON cursos USING gist (unaccent_immutable(nombres_multi->>'en') gist_trgm_ops);''',
+    '''CREATE INDEX idx_cursos_fuzzy_en ON cursos 
+       USING gist (unaccent_immutable(nombres_multi->>'en') gist_trgm_ops);''',
 
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_precio ON cursos (precio);''',
-    '''CREATE INDEX IF NOT EXISTS idx_cursos_capacidad ON cursos (capacidad_max);''',
-    '''CREATE INDEX IF NOT EXISTS idx_matriculas_alumno ON matriculas (id_alumno);''',
-    '''CREATE INDEX IF NOT EXISTS idx_matriculas_curso ON matriculas (id_curso);''',
-
+    # Otros índices de búsqueda rápida
+    '''CREATE INDEX idx_alumnos_nombre ON alumnos (nombre);''',
+    '''CREATE INDEX idx_profesores_nombre ON profesores (nombre);'''
 )
 
 def create_tables() -> None:

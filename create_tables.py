@@ -68,6 +68,29 @@ DDL = (
         capacidad_max INTEGER, precio FLOAT
     );''',
 
+    '''CREATE TABLE IF NOT EXISTS audit_profesores(
+        operacion       CHAR(1) NOT NULL,
+        stamp           TIMESTAMP NOT NULL,
+        user_id         VARCHAR(100) NOT NULL,
+        id_profesor     INTEGER,
+        nombre          VARCHAR(100),
+        apellido        VARCHAR(100),
+        fecha_nacimiento DATE,
+        dni             VARCHAR(20)
+    );''',
+
+    '''CREATE TABLE IF NOT EXISTS audit_alumnos(
+        operacion       CHAR(1) NOT NULL,
+        stamp           TIMESTAMP NOT NULL,
+        user_id         VARCHAR(100) NOT NULL,
+        id_alumno       INTEGER,
+        nombre          VARCHAR(100),
+        apellido        VARCHAR(100),
+        fecha_nacimiento DATE,
+        dni             VARCHAR(20),
+        dinero          FLOAT
+    );''',
+
     '''CREATE OR REPLACE FUNCTION fn_audit_cursos() RETURNS TRIGGER AS $$
     DECLARE r record;
     BEGIN

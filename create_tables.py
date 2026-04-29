@@ -2,6 +2,14 @@ from __future__ import annotations
 import psycopg
 from config import load_config
 DDL = (
+    '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos CASCADE;''',
+    '''DROP TABLE IF EXISTS matriculas CASCADE;''',
+    '''DROP TABLE IF EXISTS cursos CASCADE;''',
+    '''DROP TABLE IF EXISTS alumnos CASCADE;''',
+    '''DROP TABLE IF EXISTS profesores CASCADE;''',
+    '''DROP TABLE IF EXISTS audit_profesores CASCADE;''',
+    '''DROP TABLE IF EXISTS audit_alumnos CASCADE;''',
+    '''DROP TABLE IF EXISTS audit_cursos CASCADE;''',
     # --- EXTENSIONES  ---
     '''CREATE EXTENSION IF NOT EXISTS pg_trgm;''',    # Fuzzy Search (similitud)
     '''CREATE EXTENSION IF NOT EXISTS unaccent;''',   # ignorar tildes

@@ -2,7 +2,6 @@ from __future__ import annotations
 import psycopg
 from config import load_config
 DDL = (
-    # 1. LIMPIEZA TOTAL (Elimina tablas y vistas previas para evitar conflictos)
     '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos CASCADE;''',
     '''DROP TABLE IF EXISTS matriculas CASCADE;''',
     '''DROP TABLE IF EXISTS cursos CASCADE;''',
@@ -12,19 +11,14 @@ DDL = (
     '''DROP TABLE IF EXISTS audit_alumnos CASCADE;''',
     '''DROP TABLE IF EXISTS audit_cursos CASCADE;''',
 
-    # 2. EXTENSIONES DEL TEMA 12
-    # Forzamos el esquema public para evitar errores de "función no encontrada"
     '''CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;''',
     '''CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;''',
 
-    # 3. FUNCIÓN DE SOPORTE PARA ÍNDICES (TEMA 12)
-    # Necesaria para indexar unaccent, ya que por defecto no es IMMUTABLE
     '''CREATE OR REPLACE FUNCTION unaccent_immutable(text)
     RETURNS text AS $$
         SELECT public.unaccent($1);
     $$ LANGUAGE sql IMMUTABLE PARALLEL SAFE;''',
 
-    # 4. TABLAS DE LA APLICACIÓN
     
     # Tabla Profesores
     '''CREATE TABLE profesores (
@@ -45,7 +39,7 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Tabla Cursos (Multi-idioma con JSONB - Requisito Tema 12)
+    # Tabla Cursos
     '''CREATE TABLE cursos (
         id_curso SERIAL PRIMARY KEY,
         nombres_multi JSONB NOT NULL,
@@ -54,14 +48,14 @@ DDL = (
         precio FLOAT NOT NULL
     );''',
 
-    # Tabla Matrículas (Relación N:M)
+    # Matrículas
     '''CREATE TABLE matriculas (
         id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno) ON DELETE CASCADE,
         id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
         PRIMARY KEY (id_alumno, id_curso)
     );''',
 
-    # 5. AUDITORÍA (Triggers y Tablas)
+    # auditoria
     '''CREATE TABLE audit_cursos(
         operacion CHAR(1), stamp TIMESTAMP, user_id VARCHAR(100), 
         id_curso INTEGER, nombres_multi JSONB, id_profesor INTEGER, 
@@ -103,7 +97,7 @@ DDL = (
     '''CREATE TRIGGER tr_audit_cursos AFTER INSERT OR UPDATE OR DELETE ON cursos
        FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
 
-    # 6. VISTA (Extracción de datos del JSONB)
+    # 6. VISTA
     '''CREATE VIEW vista_alumnos_profesores_cursos AS
     SELECT a.nombre || ' ' || a.apellido AS nombre_alumno,
            p.nombre || ' ' || p.apellido AS nombre_profesor,
@@ -113,19 +107,16 @@ DDL = (
     JOIN cursos c ON m.id_curso = c.id_curso
     JOIN profesores p ON c.id_profesor = p.id_profesor;''',
 
-    # 7. ÍNDICES AVANZADOS (TEMA 12 - RENDIMIENTO)
+    # ÍNDICES 
     
-    # Índice GIN para búsquedas por clave/valor dentro del JSONB
     '''CREATE INDEX idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
     
-    # Índices GIST para Fuzzy Search e ignorar acentos simultáneamente
     '''CREATE INDEX idx_cursos_fuzzy_es ON cursos 
        USING gist (unaccent_immutable(nombres_multi->>'es') gist_trgm_ops);''',
     
     '''CREATE INDEX idx_cursos_fuzzy_en ON cursos 
        USING gist (unaccent_immutable(nombres_multi->>'en') gist_trgm_ops);''',
 
-    # Otros índices de búsqueda rápida
     '''CREATE INDEX idx_alumnos_nombre ON alumnos (nombre);''',
     '''CREATE INDEX idx_profesores_nombre ON profesores (nombre);'''
 )

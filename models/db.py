@@ -166,7 +166,7 @@ def crear_matricula(id_alumno: int, id_curso: int):
                 cur.execute("SELECT nombre, dinero FROM alumnos WHERE id_alumno=%s FOR UPDATE;", 
                 (id_alumno,))
                 alumno = cur.fetchone() # recuperar el dato
-
+            
                 if not alumno:
                     return "Alumno no encontrado"
                 
@@ -635,6 +635,39 @@ def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_cur
                 for row in cur.fetchall()
             ]
 
+# esta consulta usa row_number para asignar el puesto en la lista
+def curso_caro_by_profesor(id_profesor):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('''SELECT p.nombre AS profesor,
+                        c.nombres_multi->>'es' AS curso, c.precio,
+                        ROW_NUMBER() OVER (PARTITION BY p.id_profesor ORDER BY c.precio DESC) AS ranking_precio
+                        FROM profesores p
+                        JOIN cursos c ON p.id_profesor = c.id_profesor WHERE p.id_profesor=%s;''', (id_profesor,))
+            
+            rows = cur.fetchall()
+            print("Fila obtenida:", rows) # depuración
+            return rows
+
+def dinero_recaudado_curso_y_profesor():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT 
+                    p.nombre AS profesor,
+                    c.nombres_multi->>'es' AS curso,
+                    SUM(c.precio) AS recaudacion_total
+                FROM profesores p
+                JOIN cursos c ON p.id_profesor = c.id_profesor
+                GROUP BY GROUPING SETS (
+                    (p.nombre, c.nombres_multi->>'es'), 
+                    (p.nombre),                         
+                    ()                                  
+                );
+            ''',)
+            
+            rows = cur.fetchall()
+            return rows
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
-    print(get_alumnos())
+    print(curso_caro_by_profesor(1))

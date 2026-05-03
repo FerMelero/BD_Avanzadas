@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor, view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor, search_profesores
+from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor, view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor, search_profesores, curso_caro_by_profesor
 
 
 profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
@@ -110,3 +110,12 @@ def eliminar_profesor(id_profesor):
         return "Profesor no encontrado", 404
         
     return render_template("eliminarProfesor.html", profesor=profesor)
+
+@profesores_bp.route("/cursosCaros/<int:id_profesor>") # le pasamos un ID
+def curso_caro_profesor(id_profesor):
+    resultado = curso_caro_by_profesor(id_profesor)
+    return render_template(
+        "cursoCaroId.html",
+        profesor=resultado
+        
+    )

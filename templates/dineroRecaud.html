@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 20px; font-family: Arial, sans-serif;">
+    <h2>Informe de Recaudación</h2>
+
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="padding: 10px; text-align: left;">Nivel</th>
+                <th style="padding: 10px; text-align: left;">Profesor</th>
+                <th style="padding: 10px; text-align: left;">Curso</th>
+                <th style="padding: 10px; text-align: right;">Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in result %}
+                {# Definimos las variables de nivel fuera del <tr> para evitar errores de sintaxis #}
+                {% set es_global = not fila[0] and not fila[1] %}
+                {% set es_profe = fila[0] and not fila[1] %}
+                
+                <tr>
+                    <td style="padding: 10px;">
+                        {% if es_global %}
+                            <strong>TOTAL GENERAL</strong>
+                        {% elif es_profe %}
+                            <strong>TOTAL PROFESOR[cite: 1]</strong>
+                        {% else %} Detalle 
+                        {% endif %}
+                    </td>
+                    <td style="padding: 10px;">
+                        {{ fila[0] if fila[0] else "---" }}
+                    </td>
+                    <td style="padding: 10px;">
+                        {{ fila[1] if fila[1] else "---" }}
+                    </td>
+                    <td style="padding: 10px; text-align: right;">
+                        <strong>{{ "%.2f"|format(fila[2]) }} €</strong>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

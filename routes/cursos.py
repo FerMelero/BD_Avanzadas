@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso, delete_curso, view_audit_cursos, search_cursos
+from models.db import get_cursos, get_cursos_by_id, get_alumnos_by_curso, crear_curso, get_profesores, modificar_curso, delete_curso, view_audit_cursos, search_cursos, dinero_recaudado_curso_y_profesor
 
 
 cursos_bp = Blueprint("cursos", __name__, url_prefix="/cursos")
@@ -175,3 +175,8 @@ def eliminar_curso(id_curso):
 def auditoria_cursos():
     aud_cursos = view_audit_cursos()
     return render_template("audCursos.html", aud = aud_cursos)
+
+@cursos_bp.route("/dinero")
+def dinero():
+    resultado = dinero_recaudado_curso_y_profesor()
+    return render_template("dineroRecaud.html", result = resultado)

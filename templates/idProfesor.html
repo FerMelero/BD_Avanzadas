@@ -33,5 +33,6 @@
 {% else %}
 <p>No hay profesor con ese ID.</p>
 {% endif %}
+<a href="{{ url_for('profesores.eliminar_profesor', id_profesor=profesor.id_profesor) }}">Eliminar profesor</a>
 
 {% endblock %}

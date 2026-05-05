@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 20px; font-family: Arial, sans-serif;">
+    <h2>Jerarquía de Capacidades (ROLLUP)</h2>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Nivel</th>
+                <th>Profesor</th>
+                <th>Curso</th>
+                <th>Capacidad Alumnos</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in result %}
+                {% set es_total_global = not fila[0] and not fila[1] %}
+                {% set es_subtotal = fila[0] and not fila[1] %}
+                <tr>
+                    <td style="padding: 8px;">
+                        {% if es_total_global %} <strong>TOTAL GENERAL</strong>
+                        {% elif es_subtotal %} <strong>SUBTOTAL PROFE</strong>
+                        {% else %} Detalle
+                        {% endif %}
+                    </td>
+                    <td style="padding: 8px;">{{ fila[0] if fila[0] else "---" }}</td>
+                    <td style="padding: 8px;">{{ fila[1] if fila[1] else "---" }}</td>
+                    <td style="padding: 8px; text-align: right;">{{ fila[2] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

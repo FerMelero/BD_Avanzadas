@@ -24,6 +24,7 @@
 {% endfor %}
 
 </ul>
+<a href="{{ url_for('alumnos.eliminar_alumno', id_alumno=alumno.id_alumno) }}">Eliminar alumno</a>
 
 {% else %}
 <p>No hay alumno con ese ID.</p>

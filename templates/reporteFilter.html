@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 20px; font-family: Arial, sans-serif;">
+    <h2>Análisis de Precios por Profesor (FILTER)</h2>
+    <table border="1" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th>Profesor</th>
+                <th>Total Cursos</th>
+                <th>Cursos Premium (>80€)</th>
+                <th>Cursos Estándar (≤80€)</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for fila in result %}
+                <tr>
+                    <td style="padding: 8px;">{{ fila[0] }}</td>
+                    <td style="padding: 8px; text-align: center;">{{ fila[1] }}</td>
+                    <td style="padding: 8px; text-align: center; font-weight: bold;">{{ fila[2] }}</td>
+                    <td style="padding: 8px; text-align: center;">{{ fila[3] }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

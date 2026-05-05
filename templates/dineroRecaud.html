@@ -15,7 +15,6 @@
         </thead>
         <tbody>
             {% for fila in result %}
-                {# Definimos las variables de nivel fuera del <tr> para evitar errores de sintaxis #}
                 {% set es_global = not fila[0] and not fila[1] %}
                 {% set es_profe = fila[0] and not fila[1] %}
                 

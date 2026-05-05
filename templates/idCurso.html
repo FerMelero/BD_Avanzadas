@@ -17,4 +17,5 @@
 {% else %}
     <p style="color: #ffffff;">No existe ese curso.</p>
 {% endif %}
+<a href="{{ url_for('cursos.eliminar_curso', id_curso=curso.id_curso) }}">Eliminar curso</a>
 {% endblock %}

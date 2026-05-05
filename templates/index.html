@@ -3,11 +3,49 @@
 {% block content %}
   <h1>Laboratorio 2 — MVC</h1>
   <p>Listados desde PostgreSQL. Elige un recurso:</p>
+
   <ul class="list">
     <li><a href="{{ url_for('alumnos.list_') }}">Alumnos</a></li>
     <li><a href="{{ url_for('profesores.list_') }}">Profesores</a></li>
     <li><a href="{{ url_for('cursos.list_') }}">Cursos</a></li>
     <li><a href="{{ url_for('matriculas.list_') }}">Matriculas</a></li>
     <li><a href="{{ url_for('matriculas.vista_matriculas') }}">Alumnos - Profesores - Cursos</a></li>
+
+    <hr>
+
+    <li><strong>Crear</strong></li>
+    <li><a href="{{ url_for('alumnos.new_alumno') }}">Nuevo Alumno</a></li>
+    <li><a href="{{ url_for('profesores.new_profesor') }}">Nuevo Profesor</a></li>
+    <li><a href="{{ url_for('cursos.new_curso') }}">Nuevo Curso</a></li>
+    <li><a href="{{ url_for('matriculas.matricular_alumno') }}">Nueva Matrícula</a></li>
+
+    <hr>
+
+    <li><strong>Auditoría</strong></li>
+    <li><a href="{{ url_for('alumnos.auditoria_alumnos') }}">Auditoría Alumnos</a></li>
+    <li><a href="{{ url_for('profesores.auditoria_profesores') }}">Auditoría Profesores</a></li>
+    <li><a href="{{ url_for('cursos.auditoria_cursos') }}">Auditoría Cursos</a></li>
+
+    <hr>
+
+    <li><strong>OLAP / Reportes</strong></li>
+    <li><a href="{{ url_for('cursos.dinero') }}">Dinero Cursos</a></li>
+    <li><a href="{{ url_for('cursos.estadisticas_precios') }}">Estadísticas Precios</a></li>
+    <li><a href="{{ url_for('cursos.reporte_capacidades') }}">Reporte Capacidades</a></li>
+    <li><a href="{{ url_for('profesores.curso_caro_profesor', id_profesor=1) }}">Curso más caro por profesor</a></li>
+
+    <hr>
+
+    <!-- OTROS -->
+    <li><strong>Otros</strong></li>
+    <li><a href="{{ url_for('matriculas.demo_rollback') }}">Demo Rollback</a></li>
+
+    <hr>
+
+    <li><strong>Autenticación</strong></li>
+    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+    <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
+      <button type="submit">Logout</button>
+    </form>
   </ul>
 {% endblock %}

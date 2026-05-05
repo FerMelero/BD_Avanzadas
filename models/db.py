@@ -668,6 +668,37 @@ def dinero_recaudado_curso_y_profesor():
             
             rows = cur.fetchall()
             return rows
+
+def capacidad_total_rollup():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT 
+                    p.nombre AS profesor,
+                    c.nombres_multi->>'es' AS curso,
+                    SUM(c.capacidad_max) AS capacidad_total
+                FROM profesores p
+                JOIN cursos c ON p.id_profesor = c.id_profesor
+                GROUP BY ROLLUP (p.nombre, c.nombres_multi->>'es')
+                ORDER BY p.nombre NULLS LAST, curso NULLS LAST;
+            ''')
+            return cur.fetchall()
+
+def estadisticas_cursos_filter():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute('''
+                SELECT 
+                    p.nombre AS profesor,
+                    COUNT(c.id_curso) AS total_cursos,
+                    COUNT(c.id_curso) FILTER (WHERE c.precio > 80) AS cursos_premium,
+                    COUNT(c.id_curso) FILTER (WHERE c.precio <= 80) AS cursos_estandar
+                FROM profesores p
+                JOIN cursos c ON p.id_profesor = c.id_profesor
+                GROUP BY p.nombre
+                ORDER BY p.nombre;
+            ''')
+            return cur.fetchall()
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
     print(curso_caro_by_profesor(1))

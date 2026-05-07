@@ -34,5 +34,6 @@
 <p>No hay profesor con ese ID.</p>
 {% endif %}
 <a href="{{ url_for('profesores.eliminar_profesor', id_profesor=profesor.id_profesor) }}">Eliminar profesor</a>
+<a href="{{ url_for('profesores.curso_caro_profesor', id_profesor=profesor.id_profesor) }}">ROWNUMBER profesor</a>
 
 {% endblock %}

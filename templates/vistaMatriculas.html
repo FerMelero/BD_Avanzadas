@@ -2,7 +2,7 @@
 {% block title %}Vista de Matriculas{% endblock %}
 
 {% block content %}
-  <h1>Vista Alumnos - Profesores - Cursos</h1>
+  <h1>Vista Alumnos - Profesores - Asignaturas</h1>
   
   <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
   <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
@@ -14,7 +14,7 @@
       <label>Nombre Profesor: 
         <input type="text" name="nombre_profesor" value="{{ nombre_profesor or '' }}" placeholder="Buscar por profesor">
       </label>
-      <label>Nombre Curso: 
+      <label>Nombre Asignatura: 
         <input type="text" name="nombre_curso" value="{{ nombre_curso or '' }}" placeholder="Buscar por curso">
       </label>
       <label>Por página: 
@@ -30,7 +30,7 @@
       <tr>
         <th>Nombre Alumno</th>
         <th>Nombre Profesor</th>
-        <th>Nombre Curso</th>
+        <th>Nombre Asignatura</th>
       </tr>
     </thead>
     <tbody>

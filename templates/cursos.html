@@ -2,7 +2,7 @@
 {% block title %}Cursos{% endblock %}
 
 {% block content %}
-  <h1 style="color: #ffffff;">Cursos Disponibles</h1>
+  <h1 style="color: #ffffff;">Asignaturas Disponibles</h1>
   
   <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ffffff; color: #ffffff;">
     <legend style="font-weight: bold; color: #ffffff;">Filtros de Búsqueda</legend>
@@ -29,7 +29,7 @@
           <input type="number" name="id_profesor" value="{{ id_profesor or '' }}" placeholder="ID" style="color: #ffffff; background: transparent; border: 1px solid #ffffff; padding: 5px; width: 60px;">
         </label>
 
-        <label style="color: #ffffff;">ID Curso: 
+        <label style="color: #ffffff;">ID Asignatura: 
           <input type="number" name="id_curso" value="{{ id_curso or '' }}" placeholder="ID" style="color: #ffffff; background: transparent; border: 1px solid #ffffff; padding: 5px; width: 60px;">
         </label>
 
@@ -49,7 +49,7 @@
     <thead>
       <tr style="background-color: rgba(255, 255, 255, 0.1);">
           <th style="padding: 10px;">ID</th>
-          <th style="padding: 10px;">Nombre del Curso (ES / EN)</th>
+          <th style="padding: 10px;">Nombre de la Asignatura (ES / EN)</th>
           <th style="padding: 10px;">ID Profesor</th>
           <th style="padding: 10px;">Precio</th>
           <th style="padding: 10px;">Capacidad Máx.</th>

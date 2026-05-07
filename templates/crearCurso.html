@@ -2,7 +2,7 @@
 {% block title %}Nuevo Curso{% endblock %}
 
 {% block content %}
-<h1 style="color: #ffffff;">Crear Nuevo Curso</h1>
+<h1 style="color: #ffffff;">Crear Nueva Asignatura</h1>
 
 <form method="POST" action="{{ url_for('cursos.new_curso') }}" style="max-width: 500px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; color: #000000;">
     
@@ -39,13 +39,13 @@
     </div>
 
     <div style="margin-bottom: 15px;">
-        <label style="font-weight: bold; color: #000000;">Precio del Curso (€):</label><br>
+        <label style="font-weight: bold; color: #000000;">Precio de la asignatura (€):</label><br>
         <input type="number" name="precio" min="0" step="0.01" required style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; color: #000000;">
     </div>
 
     <div style="margin-top: 20px;">
         <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
-            Guardar Curso
+            Guardar Asignatura
         </button>
         <a href="{{ url_for('cursos.list_') }}" style="margin-left: 15px; color: #000000; text-decoration: underline;">Cancelar</a>
     </div>

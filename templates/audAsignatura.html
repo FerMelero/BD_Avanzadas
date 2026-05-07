@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Auditoría de Cursos{% endblock %}
+{% block title %}Auditoría de Asignaturas{% endblock %}
 
 {% block content %}
 <h1>Historial de Cambios: Asignaturas</h1>
@@ -10,7 +10,7 @@
             <th>Operación</th>
             <th>Fecha y Hora</th>
             <th>Usuario</th>
-            <th>ID Curso</th>
+            <th>ID Asignatura</th>
             <th>Nombre Español</th>
             <th>Nombre Inglés</th>
             <th>ID Prof.</th>
@@ -34,7 +34,7 @@
             </td>
             <td>{{ c.stamp.strftime('%d/%m/%Y %H:%M:%S') }}</td>
             <td><code>{{ c.user_id }}</code></td>
-            <td>{{ c.id_curso }}</td>
+            <td>{{ c.id_asignatura }}</td>
             <td>{{ c.nombres_multi.es }}</td>
             <td>{{ c.nombres_multi.en }}</td>
             <td>{{ c.id_profesor }}</td>
@@ -44,7 +44,7 @@
         {% else %}
         <tr>
             <td colspan="8" style="text-align: center; padding: 20px;">
-                No hay registros de movimientos en los cursos.
+                No hay registros de movimientos en los asignaturas.
             </td>
         </tr>
         {% endfor %}

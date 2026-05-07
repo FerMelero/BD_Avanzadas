@@ -16,7 +16,7 @@ def generate_csv(
     out_dir: Path,
     profesores: int,
     alumnos: int,
-    cursos: int,
+    asignaturas: int,
     matriculas: int,
     seed: int,
 ) -> None:
@@ -25,7 +25,7 @@ def generate_csv(
 
     profesores_csv = out_dir / "profesores.csv"
     alumnos_csv = out_dir / "alumnos.csv"
-    cursos_csv = out_dir / "cursos.csv"
+    asignaturas_csv = out_dir / "asignaturas.csv"
     matriculas_csv = out_dir / "matriculas.csv"
 
     # Profesores (ids 1..profesores)
@@ -42,28 +42,28 @@ def generate_csv(
         for aid in range(1, alumnos + 1):
             w.writerow([aid, f"Alumno {aid}", _safe_email(aid)])
 
-    # Cursos (ids 1..cursos), cada curso asignado a un profesor aleatorio
-    with cursos_csv.open("w", newline="", encoding="utf-8") as f:
+    # Asignaturas (ids 1..asignaturas), cada asignatura asignado a un profesor aleatorio
+    with asignaturas_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["curso_id", "profesor_id", "titulo"])
-        for cid in range(1, cursos + 1):
+        w.writerow(["asignatura_id", "profesor_id", "titulo"])
+        for cid in range(1, asignaturas + 1):
             pid = rnd.randint(1, profesores)
-            w.writerow([cid, pid, f"Curso {cid}"])
+            w.writerow([cid, pid, f"Asignatura {cid}"])
 
-    # Matrículas: (alumno_id, curso_id)
+    # Matrículas: (alumno_id, asignatura_id)
     # Generación rápida con random. Ojo: puede generar duplicados; para el laboratorio vale.
     with matriculas_csv.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
-        w.writerow(["alumno_id", "curso_id"])
+        w.writerow(["alumno_id", "asignatura_id"])
         for _ in range(matriculas):
             aid = rnd.randint(1, alumnos)
-            cid = rnd.randint(1, cursos)
+            cid = rnd.randint(1, asignaturas)
             w.writerow([aid, cid])
 
     print("OK: CSV generados en:", out_dir)
     print(" -", profesores_csv.name)
     print(" -", alumnos_csv.name)
-    print(" -", cursos_csv.name)
+    print(" -", asignaturas_csv.name)
     print(" -", matriculas_csv.name)
     print()
     print("Siguiente paso: python tema5_load_copy.py --data-dir", out_dir)
@@ -74,7 +74,7 @@ def main() -> None:
     parser.add_argument("--data-dir", default="data_tema5", help="Directorio de salida (default: data_tema5).")
     parser.add_argument("--profesores", type=int, default=100, help="Número de profesores.")
     parser.add_argument("--alumnos", type=int, default=10_000, help="Número de alumnos.")
-    parser.add_argument("--cursos", type=int, default=5_000, help="Número de cursos.")
+    parser.add_argument("--asignaturas", type=int, default=5_000, help="Número de asignaturas.")
     parser.add_argument("--matriculas", type=int, default=50_000, help="Número de matrículas.")
     parser.add_argument("--seed", type=int, default=42, help="Semilla para reproducibilidad.")
     args = parser.parse_args()
@@ -83,7 +83,7 @@ def main() -> None:
         out_dir=Path(args.data_dir),
         profesores=args.profesores,
         alumnos=args.alumnos,
-        cursos=args.cursos,
+        asignaturas=args.asignaturas,
         matriculas=args.matriculas,
         seed=args.seed,
     )

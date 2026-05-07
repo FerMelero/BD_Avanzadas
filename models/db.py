@@ -5,7 +5,7 @@ import json
 
 from config import load_config
 
-from models.entities import Alumno, Profesor, Matriculas, Cursos, AuditProfesor, AuditAlumno, AuditCurso
+from models.entities import Alumno, Profesor, Matriculas, Asignaturas, AuditProfesor, AuditAlumno, Auditasignatura
 
 def get_connection():
     cfg = load_config()
@@ -27,19 +27,19 @@ def get_profesores():
             )
             return [Profesor(*r) for r in cur.fetchall()]
 
-def get_cursos():
+def get_asignaturas():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos ORDER BY id_curso;"
+                "SELECT id_asignatura, nombres_multi, id_profesor, precio, capacidad_max FROM asignaturas ORDER BY id_asignatura;"
             )
-            return [Cursos(*r) for r in cur.fetchall()]
+            return [Asignaturas(*r) for r in cur.fetchall()]
 
 def get_matriculas():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id_alumno, id_curso FROM matriculas ORDER BY id_alumno;"
+                "SELECT id_alumno, id_asignatura FROM matriculas ORDER BY id_alumno;"
             )
             return [Matriculas(*r) for r in cur.fetchall()]
 
@@ -48,13 +48,13 @@ def get_matriculas_vista():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT nombre_alumno, nombre_profesor, nombre_curso FROM vista_alumnos_profesores_cursos ORDER BY nombre_alumno, nombre_curso;"
+                "SELECT nombre_alumno, nombre_profesor, nombre_asignatura FROM vista_alumnos_profesores_asignaturas ORDER BY nombre_alumno, nombre_asignatura;"
             )
             return [
                 {
                     "nombre_alumno": row[0],
                     "nombre_profesor": row[1],
-                    "nombre_curso": row[2],
+                    "nombre_asignatura": row[2],
                 }
                 for row in cur.fetchall()
             ]
@@ -74,23 +74,23 @@ def get_alumno_by_id(id_alumno): # pasamos un ID específico
             return None
 
 
-def get_cursos_by_alumno(id_alumno):
+def get_asignaturas_by_alumno(id_alumno):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT c.id_curso, c.nombres_multi, c.id_profesor, c.precio, c.capacidad_max
-                FROM cursos c
-                JOIN matriculas m ON c.id_curso = m.id_curso
+                SELECT c.id_asignatura, c.nombres_multi, c.id_profesor, c.precio, c.capacidad_max
+                FROM asignaturas c
+                JOIN matriculas m ON c.id_asignatura = m.id_asignatura
                 WHERE m.id_alumno = %s;
                 """,
                 (id_alumno,)
             )
 
             rows = cur.fetchall()
-            print("Cursos obtenidos:", rows)
+            print("Asignaturas obtenidos:", rows)
 
-            return [Cursos(*r) for r in rows]
+            return [Asignaturas(*r) for r in rows]
 
 
 def get_profesor_by_id(id_profesor): # pasamos un ID específico
@@ -106,37 +106,37 @@ def get_profesor_by_id(id_profesor): # pasamos un ID específico
                 return Profesor(*row) # ahora solo se devuelve un objeto que es una fila
             return None
 
-def get_cursos_by_profesor(id_profesor): # pasamos un ID específico
+def get_asignaturas_by_profesor(id_profesor): # pasamos un ID específico
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE id_profesor=%s;",
+            "SELECT id_asignatura, nombres_multi, id_profesor, precio, capacidad_max FROM asignaturas WHERE id_profesor=%s;",
             (id_profesor,) # debemos poner %s(id_profesor, ) para que seleccione bien el ID
         )
             rows = cur.fetchall()
             print("Fila obtenida:", rows) # depuración
-            return [Cursos(*r) for r in rows]
+            return [Asignaturas(*r) for r in rows]
 
-def get_cursos_by_id(id_curso):
+def get_asignaturas_by_id(id_asignatura):
     with get_connection() as conn:
         with conn.cursor() as cur:
-            print("Buscando curso con id:", id_curso)
+            print("Buscando asignatura con id:", id_asignatura)
             cur.execute(
-            "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE id_curso=%s;",
-            (id_curso,) # debemos poner %s(id_curso, ) para que seleccione bien el ID
+            "SELECT id_asignatura, nombres_multi, id_profesor, precio, capacidad_max FROM asignaturas WHERE id_asignatura=%s;",
+            (id_asignatura,) # debemos poner %s(id_asignatura, ) para que seleccione bien el ID
         )
             row = cur.fetchone()
             print("Fila obtenida:", row) # depuración
             if row:
-                return Cursos(*row) # ahora solo se devuelve un objeto que es una fila
+                return Asignaturas(*row) # ahora solo se devuelve un objeto que es una fila
             return None
 
-def get_alumnos_by_curso(id_curso):
+def get_alumnos_by_asignatura(id_asignatura):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-            "SELECT a.id_alumno, a.nombre, a.apellido, a.fecha_nacimiento, a.dni, a.dinero FROM alumnos a JOIN matriculas m ON a.id_alumno = m.id_alumno WHERE m.id_curso=%s;",
-            (id_curso,) # debemos poner %s(id_curso, ) para que seleccione bien el ID
+            "SELECT a.id_alumno, a.nombre, a.apellido, a.fecha_nacimiento, a.dni, a.dinero FROM alumnos a JOIN matriculas m ON a.id_alumno = m.id_alumno WHERE m.id_asignatura=%s;",
+            (id_asignatura,) # debemos poner %s(id_asignatura, ) para que seleccione bien el ID
         )
             rows = cur.fetchall()
             print("Fila obtenida:", rows) # depuración
@@ -158,7 +158,7 @@ def crear_alumno(nombre, apellidos, fecha_nacimiento_alumno, dni, dinero):
             print(f"Error al crear alumno: {e}")
             return None
 
-def crear_matricula(id_alumno: int, id_curso: int):
+def crear_matricula(id_alumno: int, id_asignatura: int):
     with get_connection() as conn:
         with conn.cursor() as cur:
             try:
@@ -172,40 +172,40 @@ def crear_matricula(id_alumno: int, id_curso: int):
                 
                 nombre_alumno, dinero = alumno # si existe el alumno, guardamos y seguimos
 
-                # ahora sacamos los datos del curso
-                cur.execute("SELECT nombres_multi, precio, capacidad_max FROM cursos WHERE id_curso=%s FOR UPDATE;", (id_curso,))
-                curso = cur.fetchone()
+                # ahora sacamos los datos del asignatura
+                cur.execute("SELECT nombres_multi, precio, capacidad_max FROM asignaturas WHERE id_asignatura=%s FOR UPDATE;", (id_asignatura,))
+                asignatura = cur.fetchone()
 
-                if not curso:
-                    return "Curso no encontrado"
+                if not asignatura:
+                    return "Asignatura no encontrado"
 
-                nombre_curso, precio_curso, capacidad_max = curso
+                nombre_asignatura, precio_asignatura, capacidad_max = asignatura
 
                 # verificamos que el alumno no esté matriculado ya
-                cur.execute("SELECT 1 FROM matriculas WHERE id_alumno=%s AND id_curso=%s;", (id_alumno, id_curso,))
+                cur.execute("SELECT 1 FROM matriculas WHERE id_alumno=%s AND id_asignatura=%s;", (id_alumno, id_asignatura,))
                 if cur.fetchone(): # si obtenemos resultado de que está matriculado
-                    return f"EL alumno {nombre_alumno} ya está matriculado en {nombre_curso}"
+                    return f"EL alumno {nombre_alumno} ya está matriculado en {nombre_asignatura}"
                 
-                # comprobar que el curso tiene plazas
-                cur.execute("SELECT COUNT(*) FROM matriculas WHERE id_curso=%s;", (id_curso,))
+                # comprobar que el asignatura tiene plazas
+                cur.execute("SELECT COUNT(*) FROM matriculas WHERE id_asignatura=%s;", (id_asignatura,))
                 actuales = cur.fetchone()[0]
                 if actuales >= capacidad_max:
-                    return f"El curso {nombre_curso} está lleno ({capacidad_max} plazas máx.)"
+                    return f"El asignatura {nombre_asignatura} está lleno ({capacidad_max} plazas máx.)"
 
                 # verificar que el alumno tiene el saldo suficiente
-                if dinero < precio_curso:
-                    return f"Saldo insuficiente. EL alumno {nombre_alumno} tiene {dinero}€ y el curso son {precio_curso}€"
+                if dinero < precio_asignatura:
+                    return f"Saldo insuficiente. EL alumno {nombre_alumno} tiene {dinero}€ y el asignatura son {precio_asignatura}€"
                 
                 # una vez comprobado todo acutalizamos su saldo
                 cur.execute(
                     "UPDATE alumnos SET dinero = dinero - %s WHERE id_alumno = %s;", 
-                    (precio_curso, id_alumno)
+                    (precio_asignatura, id_alumno)
                 )
                 
                 # insertamos finalmente la matrícula
                 cur.execute(
-                    "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
-                    (id_alumno, id_curso)
+                    "INSERT INTO matriculas (id_alumno, id_asignatura) VALUES (%s, %s);",
+                    (id_alumno, id_asignatura)
                 )
                 conn.commit()
                 return True
@@ -221,13 +221,13 @@ def demo_transaccion_rollback():
 
         # insert válido
         cur.execute(
-            "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+            "INSERT INTO matriculas (id_alumno, id_asignatura) VALUES (%s, %s);",
             (1, 1)
         )
 
         # este insert falla
         cur.execute(
-            "INSERT INTO matriculas (id_alumno, id_curso) VALUES (%s, %s);",
+            "INSERT INTO matriculas (id_alumno, id_asignatura) VALUES (%s, %s);",
             (1, 9999)
         )
 
@@ -241,21 +241,21 @@ def demo_transaccion_rollback():
         cur.close()
         conn.close()
 
-def cursos_alumnos_by_profesor(id_profesor):
+def asignaturas_alumnos_by_profesor(id_profesor):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT 
-                    COUNT(DISTINCT c.id_curso) AS num_cursos,
+                    COUNT(DISTINCT c.id_asignatura) AS num_asignaturas,
                     COUNT(DISTINCT m.id_alumno) AS num_alumnos
-                FROM cursos c
-                LEFT JOIN matriculas m ON c.id_curso = m.id_curso
+                FROM asignaturas c
+                LEFT JOIN matriculas m ON c.id_asignatura = m.id_asignatura
                 WHERE c.id_profesor = %s;
             """, (id_profesor,))
 
             row = cur.fetchone()
             return {
-                "num_cursos": row[0],
+                "num_asignaturas": row[0],
                 "num_alumnos_distintos": row[1]
             }
 
@@ -264,16 +264,16 @@ def resumen_alumno(id_alumno):
         with conn.cursor() as cur:
             cur.execute("""
                 SELECT 
-                    COUNT(DISTINCT m.id_curso) AS num_cursos,
+                    COUNT(DISTINCT m.id_asignatura) AS num_asignaturas,
                     COUNT(DISTINCT c.id_profesor) AS num_profesores
                 FROM matriculas m
-                JOIN cursos c ON m.id_curso = c.id_curso
+                JOIN asignaturas c ON m.id_asignatura = c.id_asignatura
                 WHERE m.id_alumno = %s;
             """, (id_alumno,))
 
             row = cur.fetchone()
             return {
-                "num_cursos": row[0],
+                "num_asignaturas": row[0],
                 "num_profesores_distintos": row[1]
             }
 
@@ -297,31 +297,31 @@ def view_audit_alumnos():
             """)
             return [AuditAlumno(*r) for r in cur.fetchall()]
 
-def view_audit_cursos():
+def view_audit_asignaturas():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("""
-                SELECT operacion, stamp, user_id, id_curso, nombres_multi, id_profesor, capacidad_max, precio
-                FROM audit_cursos 
+                SELECT operacion, stamp, user_id, id_asignatura, nombres_multi, id_profesor, capacidad_max, precio
+                FROM audit_asignaturas 
                 ORDER BY stamp DESC;
             """)
-            return [AuditCurso(*r) for r in cur.fetchall()]
+            return [Auditasignatura(*r) for r in cur.fetchall()]
 
-def crear_curso(nombres_multi, id_profesor, precio, capacidad_max):
+def crear_asignatura(nombres_multi, id_profesor, precio, capacidad_max):
     with get_connection() as conn:
         with conn.cursor() as cur:
             try:
                 cur.execute("""
-                INSERT INTO cursos (nombres_multi, id_profesor, capacidad_max, precio)
-                VALUES (%s, %s, %s, %s) RETURNING id_curso;
+                INSERT INTO asignaturas (nombres_multi, id_profesor, capacidad_max, precio)
+                VALUES (%s, %s, %s, %s) RETURNING id_asignatura;
             """, (psycopg.types.json.Jsonb(nombres_multi), id_profesor, capacidad_max, precio))
                 
-                id_curso = cur.fetchone()[0]
+                id_asignatura = cur.fetchone()[0]
                 conn.commit()
-                return id_curso
+                return id_asignatura
             except Exception as e:
                 conn.rollback()
-                print(f"Error al crear curso: {e}") 
+                print(f"Error al crear asignatura: {e}") 
                 return None
 
 def crear_profesor(nombre, apellido, fecha_nac, dni):
@@ -376,20 +376,20 @@ def modificar_profesor(id_profesor, nombre, apellido, fecha_nacimiento, dni):
 
 
 
-def modificar_curso(id_curso, nombre, id_profesor, precio, capacidad):
+def modificar_asignatura(id_asignatura, nombre, id_profesor, precio, capacidad):
     with get_connection() as conn:
         with conn.cursor() as cur:
             try:
                 cur.execute("""
-                    UPDATE cursos 
+                    UPDATE asignaturas 
                     SET nombres_multi = %s, id_profesor = %s, precio = %s, capacidad_max = %s
-                    WHERE id_curso = %s;
-                """, (psycopg.types.json.Jsonb(nombre), id_profesor, precio, capacidad, id_curso))
+                    WHERE id_asignatura = %s;
+                """, (psycopg.types.json.Jsonb(nombre), id_profesor, precio, capacidad, id_asignatura))
                 conn.commit()
                 return True
             except Exception as e:
                 conn.rollback()
-                print(f"Error al modificar curso: {e}")
+                print(f"Error al modificar asignatura: {e}")
                 return False
 
 def delete_alumno(id_alumno):
@@ -424,20 +424,20 @@ def delete_profesor(id_profesor):
                 print(f"Error al eliminar el profesor: {e}") 
                 return None
 
-def delete_curso(id_curso):
+def delete_asignatura(id_asignatura):
     with get_connection() as conn:
         with conn.cursor() as cur:
             try:
                 cur.execute(
-                    "DELETE FROM cursos WHERE id_curso = %s;", 
-                    (id_curso,)
+                    "DELETE FROM asignaturas WHERE id_asignatura = %s;", 
+                    (id_asignatura,)
                 )
                 conn.commit()
                 return True
 
             except Exception as e:
                 conn.rollback()
-                print(f"Error al eliminar el curso: {e}") 
+                print(f"Error al eliminar el asignatura: {e}") 
                 return None
 
 # ============================================
@@ -520,11 +520,11 @@ def search_profesores(nombre=None, apellido=None, dni=None, fecha_nacimiento=Non
             cur.execute(sql, params)
             return [Profesor(*r) for r in cur.fetchall()]
 
-def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=None, id_profesor=None, id_curso=None, offset=0, limit=10):
-    """Búsqueda segura y parametrizada de cursos con filtros string, numéricos, IDs y paginación."""
+def search_asignaturas(nombre=None, precio_min=None, precio_max=None, capacidad_min=None, id_profesor=None, id_asignatura=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada de asignaturas con filtros string, numéricos, IDs y paginación."""
     with get_connection() as conn:
         with conn.cursor() as cur:
-            sql = "SELECT id_curso, nombres_multi, id_profesor, precio, capacidad_max FROM cursos WHERE 1=1"
+            sql = "SELECT id_asignatura, nombres_multi, id_profesor, precio, capacidad_max FROM asignaturas WHERE 1=1"
             params = []
             
             if nombre:
@@ -555,38 +555,38 @@ def search_cursos(nombre=None, precio_min=None, precio_max=None, capacidad_min=N
                 sql += " AND id_profesor = %s"
                 params.append(id_profesor)
             
-            if id_curso is not None:
-                sql += " AND id_curso = %s"
-                params.append(id_curso)
+            if id_asignatura is not None:
+                sql += " AND id_asignatura = %s"
+                params.append(id_asignatura)
             
             if nombre:
                 sql += " ORDER BY similarity(unaccent(nombres_multi->>'es'), unaccent(%s)) DESC"
                 params.append(nombre)
             else:
-                sql += " ORDER BY id_curso"
+                sql += " ORDER BY id_asignatura"
                 
             sql += " LIMIT %s OFFSET %s"
             params.extend([limit, offset])
             
             cur.execute(sql, params)
-            return [Cursos(*r) for r in cur.fetchall()]
+            return [Asignaturas(*r) for r in cur.fetchall()]
 
-def search_matriculas(id_curso=None, id_alumno=None, offset=0, limit=10):
+def search_matriculas(id_asignatura=None, id_alumno=None, offset=0, limit=10):
     """Búsqueda segura y parametrizada de matriculas con filtros y paginación."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             sql = """
-                SELECT m.id_alumno, m.id_curso, a.nombre, a.apellido, c.nombres_multi, c.precio
+                SELECT m.id_alumno, m.id_asignatura, a.nombre, a.apellido, c.nombres_multi, c.precio
                 FROM matriculas m
                 JOIN alumnos a ON m.id_alumno = a.id_alumno
-                JOIN cursos c ON m.id_curso = c.id_curso
+                JOIN asignaturas c ON m.id_asignatura = c.id_asignatura
                 WHERE 1=1
             """
             params = []
             
-            if id_curso is not None:
-                sql += " AND m.id_curso = %s"
-                params.append(id_curso)
+            if id_asignatura is not None:
+                sql += " AND m.id_asignatura = %s"
+                params.append(id_asignatura)
             
             if id_alumno is not None:
                 sql += " AND m.id_alumno = %s"
@@ -599,13 +599,13 @@ def search_matriculas(id_curso=None, id_alumno=None, offset=0, limit=10):
             # Devolver como diccionarios para mayor flexibilidad
             return cur.fetchall()
 
-def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_curso=None, offset=0, limit=10):
-    """Búsqueda segura y parametrizada en la vista alumnos-profesores-cursos."""
+def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_asignatura=None, offset=0, limit=10):
+    """Búsqueda segura y parametrizada en la vista alumnos-profesores-asignaturas."""
     with get_connection() as conn:
         with conn.cursor() as cur:
             sql = """
-                SELECT nombre_alumno, nombre_profesor, nombre_curso 
-                FROM vista_alumnos_profesores_cursos 
+                SELECT nombre_alumno, nombre_profesor, nombre_asignatura 
+                FROM vista_alumnos_profesores_asignaturas 
                 WHERE 1=1
             """
             params = []
@@ -618,11 +618,11 @@ def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_cur
                 sql += " AND nombre_profesor ILIKE %s"
                 params.append(f"%{nombre_profesor}%")
             
-            if nombre_curso:
-                sql += " AND nombre_curso ILIKE %s"
-                params.append(f"%{nombre_curso}%")
+            if nombre_asignatura:
+                sql += " AND nombre_asignatura ILIKE %s"
+                params.append(f"%{nombre_asignatura}%")
             
-            sql += " ORDER BY nombre_alumno, nombre_curso LIMIT %s OFFSET %s"
+            sql += " ORDER BY nombre_alumno, nombre_asignatura LIMIT %s OFFSET %s"
             params.extend([limit, offset])
             
             cur.execute(sql, params)
@@ -630,35 +630,35 @@ def search_matriculas_vista(nombre_alumno=None, nombre_profesor=None, nombre_cur
                 {
                     "nombre_alumno": row[0],
                     "nombre_profesor": row[1],
-                    "nombre_curso": row[2],
+                    "nombre_asignatura": row[2],
                 }
                 for row in cur.fetchall()
             ]
 
 # esta consulta usa row_number para asignar el puesto en la lista
-def curso_caro_by_profesor(id_profesor):
+def asignatura_caro_by_profesor(id_profesor):
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute('''SELECT p.nombre AS profesor,
-                        c.nombres_multi->>'es' AS curso, c.precio,
+                        c.nombres_multi->>'es' AS asignatura, c.precio,
                         ROW_NUMBER() OVER (PARTITION BY p.id_profesor ORDER BY c.precio DESC) AS ranking_precio
                         FROM profesores p
-                        JOIN cursos c ON p.id_profesor = c.id_profesor WHERE p.id_profesor=%s;''', (id_profesor,))
+                        JOIN asignaturas c ON p.id_profesor = c.id_profesor WHERE p.id_profesor=%s;''', (id_profesor,))
             
             rows = cur.fetchall()
             print("Fila obtenida:", rows) # depuración
             return rows
 
-def dinero_recaudado_curso_y_profesor():
+def dinero_recaudado_asignatura_y_profesor():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute('''
                 SELECT 
                     p.nombre AS profesor,
-                    c.nombres_multi->>'es' AS curso,
+                    c.nombres_multi->>'es' AS asignatura,
                     SUM(c.precio) AS recaudacion_total
                 FROM profesores p
-                JOIN cursos c ON p.id_profesor = c.id_profesor
+                JOIN asignaturas c ON p.id_profesor = c.id_profesor
                 GROUP BY GROUPING SETS (
                     (p.nombre, c.nombres_multi->>'es'), 
                     (p.nombre),                         
@@ -675,30 +675,30 @@ def capacidad_total_rollup():
             cur.execute('''
                 SELECT 
                     p.nombre AS profesor,
-                    c.nombres_multi->>'es' AS curso,
+                    c.nombres_multi->>'es' AS asignatura,
                     SUM(c.capacidad_max) AS capacidad_total
                 FROM profesores p
-                JOIN cursos c ON p.id_profesor = c.id_profesor
+                JOIN asignaturas c ON p.id_profesor = c.id_profesor
                 GROUP BY ROLLUP (p.nombre, c.nombres_multi->>'es')
-                ORDER BY p.nombre NULLS LAST, curso NULLS LAST;
+                ORDER BY p.nombre NULLS LAST, asignatura NULLS LAST;
             ''')
             return cur.fetchall()
 
-def estadisticas_cursos_filter():
+def estadisticas_asignaturas_filter():
     with get_connection() as conn:
         with conn.cursor() as cur:
             cur.execute('''
                 SELECT 
                     p.nombre AS profesor,
-                    COUNT(c.id_curso) AS total_cursos,
-                    COUNT(c.id_curso) FILTER (WHERE c.precio > 80) AS cursos_premium,
-                    COUNT(c.id_curso) FILTER (WHERE c.precio <= 80) AS cursos_estandar
+                    COUNT(c.id_asignatura) AS total_asignaturas,
+                    COUNT(c.id_asignatura) FILTER (WHERE c.precio > 80) AS asignaturas_premium,
+                    COUNT(c.id_asignatura) FILTER (WHERE c.precio <= 80) AS asignaturas_estandar
                 FROM profesores p
-                JOIN cursos c ON p.id_profesor = c.id_profesor
+                JOIN asignaturas c ON p.id_profesor = c.id_profesor
                 GROUP BY p.nombre
                 ORDER BY p.nombre;
             ''')
             return cur.fetchall()
 # si se desean ver los reesultados de estos prints, ejecutar con python -m models.db desde la raíz
 if __name__ == "__main__":
-    print(curso_caro_by_profesor(1))
+    print(asignatura_caro_by_profesor(1))

@@ -1,12 +1,12 @@
 {% extends "base.html" %}
-{% block title %}Cursos{% endblock %}
+{% block title %}Asignaturas{% endblock %}
 
 {% block content %}
   <h1 style="color: #ffffff;">Asignaturas Disponibles</h1>
   
   <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ffffff; color: #ffffff;">
     <legend style="font-weight: bold; color: #ffffff;">Filtros de Búsqueda</legend>
-    <form method="GET" action="{{ url_for('cursos.list_') }}">
+    <form method="GET" action="{{ url_for('asignaturas.list_') }}">
       
       <div style="display: flex; flex-wrap: wrap; gap: 10px;">
         <label style="color: #ffffff;">Nombre: 
@@ -30,7 +30,7 @@
         </label>
 
         <label style="color: #ffffff;">ID Asignatura: 
-          <input type="number" name="id_curso" value="{{ id_curso or '' }}" placeholder="ID" style="color: #ffffff; background: transparent; border: 1px solid #ffffff; padding: 5px; width: 60px;">
+          <input type="number" name="id_asignatura" value="{{ id_asignatura or '' }}" placeholder="ID" style="color: #ffffff; background: transparent; border: 1px solid #ffffff; padding: 5px; width: 60px;">
         </label>
 
         <label style="color: #ffffff;">Por página: 
@@ -40,7 +40,7 @@
 
       <div style="margin-top: 10px;">
         <button type="submit" style="cursor: pointer; font-weight: bold; background: #ffffff; color: #000000; border: none; padding: 8px 15px; border-radius: 4px;">🔍 Buscar</button>
-        <a href="{{ url_for('cursos.list_') }}" style="color: #ffffff; margin-left: 15px; text-decoration: underline;">Limpiar filtros</a>
+        <a href="{{ url_for('asignaturas.list_') }}" style="color: #ffffff; margin-left: 15px; text-decoration: underline;">Limpiar filtros</a>
       </div>
     </form>
   </fieldset>
@@ -57,40 +57,40 @@
       </tr>
     </thead>
     <tbody>
-      {% for curso in cursos %}
+      {% for asignatura in asignaturas %}
       <tr>
-          <td style="padding: 8px;">{{ curso.id_curso }}</td>
+          <td style="padding: 8px;">{{ asignatura.id_asignatura }}</td>
           <td style="padding: 8px;">
-            {% if curso.nombre_curso is mapping %}
-                <strong>🇪🇸 {{ curso.nombre_curso.es }}</strong><br>
-                <small style="opacity: 0.8;">🇬🇧 {{ curso.nombre_curso.en }}</small>
+            {% if asignatura.nombre_asignatura is mapping %}
+                <strong>🇪🇸 {{ asignatura.nombre_asignatura.es }}</strong><br>
+                <small style="opacity: 0.8;">🇬🇧 {{ asignatura.nombre_asignatura.en }}</small>
             {% else %}
-                {{ curso.nombre_curso }}
+                {{ asignatura.nombre_asignatura }}
             {% endif %}
           </td>
-          <td style="padding: 8px;">{{ curso.id_profesor }}</td>
-          <td style="padding: 8px;">{{ curso.precio }}€</td>
-          <td style="padding: 8px;">{{ curso.capacidad_max }}</td>
+          <td style="padding: 8px;">{{ asignatura.id_profesor }}</td>
+          <td style="padding: 8px;">{{ asignatura.precio }}€</td>
+          <td style="padding: 8px;">{{ asignatura.capacidad_max }}</td>
           <td style="padding: 8px;">
-            <a href="{{ url_for('cursos.view_curso', id_curso=curso.id_curso) }}" style="color: #00d4ff; font-weight: bold;">Ver detalles</a>
+            <a href="{{ url_for('asignaturas.view_asignatura', id_asignatura=asignatura.id_asignatura) }}" style="color: #00d4ff; font-weight: bold;">Ver detalles</a>
           </td>
       </tr>
       {% else %}
-      <tr><td colspan="6" style="text-align: center; color: #ffffff; padding: 20px;">No se encontraron cursos con esos filtros.</td></tr>
+      <tr><td colspan="6" style="text-align: center; color: #ffffff; padding: 20px;">No se encontraron asignaturas con esos filtros.</td></tr>
       {% endfor %}
     </tbody>
   </table>
   
-  {% if cursos %}
+  {% if asignaturas %}
   <div style="margin-top: 20px; text-align: center; color: #ffffff;">
     {% if page > 1 %}
-      <a href="{{ url_for('cursos.list_', page=page-1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_curso=id_curso) }}" style="color: #ffffff; text-decoration: none;">← Anterior</a>
+      <a href="{{ url_for('asignaturas.list_', page=page-1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_asignatura=id_asignatura) }}" style="color: #ffffff; text-decoration: none;">← Anterior</a>
     {% endif %}
     
     <span style="margin: 0 15px; font-weight: bold;">Página {{ page }}</span>
     
-    {% if cursos|length == limit %}
-      <a href="{{ url_for('cursos.list_', page=page+1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_curso=id_curso) }}" style="color: #ffffff; text-decoration: none;">Siguiente →</a>
+    {% if asignaturas|length == limit %}
+      <a href="{{ url_for('asignaturas.list_', page=page+1, limit=limit, nombre=nombre, precio_min=precio_min, precio_max=precio_max, capacidad_min=capacidad_min, id_profesor=id_profesor, id_asignatura=id_asignatura) }}" style="color: #ffffff; text-decoration: none;">Siguiente →</a>
     {% endif %}
   </div>
   {% endif %}

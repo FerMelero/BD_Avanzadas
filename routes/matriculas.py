@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_matriculas, get_matriculas_vista, crear_matricula, demo_transaccion_rollback, get_alumnos, get_cursos, search_matriculas, search_matriculas_vista
+from models.db import get_matriculas, get_matriculas_vista, crear_matricula, demo_transaccion_rollback, get_alumnos, get_asignaturas, search_matriculas, search_matriculas_vista
 
 
 matriculas_bp = Blueprint("matriculas", __name__, url_prefix="/matriculas")
@@ -12,16 +12,16 @@ matriculas_bp = Blueprint("matriculas", __name__, url_prefix="/matriculas")
 @matriculas_bp.route("")
 def list_():
     """Lista de matriculas con búsqueda opcional."""
-    id_curso = request.args.get("id_curso", None, type=int)
+    id_asignatura = request.args.get("id_asignatura", None, type=int)
     id_alumno = request.args.get("id_alumno", None, type=int)
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     offset = (page - 1) * limit
     
     # Si hay parámetros de búsqueda, usar búsqueda filtrada
-    if id_curso or id_alumno:
+    if id_asignatura or id_alumno:
         matriculas = search_matriculas(
-            id_curso=id_curso,
+            id_asignatura=id_asignatura,
             id_alumno=id_alumno,
             offset=offset,
             limit=limit
@@ -37,42 +37,42 @@ def list_():
         search_active=search_active,
         page=page,
         limit=limit,
-        id_curso=id_curso,
+        id_asignatura=id_asignatura,
         id_alumno=id_alumno
     )
 
 @matriculas_bp.route("/nuevo", methods=["GET", "POST"])
 def matricular_alumno():
     alumnos = get_alumnos()
-    cursos = get_cursos()
+    asignaturas = get_asignaturas()
     error=None
     if request.method == "POST":
         id_alumno = request.form["id_alumno"]
-        id_curso = request.form["id_curso"]
-        resultado = crear_matricula(id_alumno, id_curso)
+        id_asignatura = request.form["id_asignatura"]
+        resultado = crear_matricula(id_alumno, id_asignatura)
 
         if resultado == True:
             return redirect(url_for("matriculas.list_"))
         else:
             error = resultado
-    return render_template("matricularAlumno.html", error=error, alumnos=alumnos, cursos=cursos)
+    return render_template("matricularAlumno.html", error=error, alumnos=alumnos, asignaturas=asignaturas)
 
 @matriculas_bp.route("/vista")
 def vista_matriculas():
-    """Vista de alumnos-profesores-cursos con búsqueda opcional."""
+    """Vista de alumnos-profesores-asignaturas con búsqueda opcional."""
     nombre_alumno = request.args.get("nombre_alumno", None)
     nombre_profesor = request.args.get("nombre_profesor", None)
-    nombre_curso = request.args.get("nombre_curso", None)
+    nombre_asignatura = request.args.get("nombre_asignatura", None)
     page = request.args.get("page", 1, type=int)
     limit = request.args.get("limit", 10, type=int)
     offset = (page - 1) * limit
     
     # Si hay parámetros de búsqueda, usar búsqueda filtrada
-    if nombre_alumno or nombre_profesor or nombre_curso:
+    if nombre_alumno or nombre_profesor or nombre_asignatura:
         vista = search_matriculas_vista(
             nombre_alumno=nombre_alumno,
             nombre_profesor=nombre_profesor,
-            nombre_curso=nombre_curso,
+            nombre_asignatura=nombre_asignatura,
             offset=offset,
             limit=limit
         )
@@ -89,7 +89,7 @@ def vista_matriculas():
         limit=limit,
         nombre_alumno=nombre_alumno,
         nombre_profesor=nombre_profesor,
-        nombre_curso=nombre_curso
+        nombre_asignatura=nombre_asignatura
     )
 
 @matriculas_bp.route("/demo-rollback")

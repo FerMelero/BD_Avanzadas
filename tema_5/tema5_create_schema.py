@@ -23,10 +23,10 @@ DDL = [
         email TEXT NOT NULL
     );
     """,
-    # Cursos
+    # Asignaturas
     """
-    CREATE TABLE IF NOT EXISTS cursos (
-        curso_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    CREATE TABLE IF NOT EXISTS asignaturas (
+        asignatura_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         profesor_id BIGINT NOT NULL REFERENCES profesores(profesor_id),
         titulo TEXT NOT NULL
     );
@@ -36,14 +36,14 @@ DDL = [
     CREATE TABLE IF NOT EXISTS matriculas (
         matricula_id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
         alumno_id BIGINT NOT NULL REFERENCES alumnos(alumno_id),
-        curso_id BIGINT NOT NULL REFERENCES cursos(curso_id)
+        asignatura_id BIGINT NOT NULL REFERENCES asignaturas(asignatura_id)
     );
     """,
 ]
 
 DROP = [
     "DROP TABLE IF EXISTS matriculas;",
-    "DROP TABLE IF EXISTS cursos;",
+    "DROP TABLE IF EXISTS asignaturas;",
     "DROP TABLE IF EXISTS alumnos;",
     "DROP TABLE IF EXISTS profesores;",
 ]
@@ -63,7 +63,7 @@ def create_schema(drop: bool) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Crea el esquema del Tema 5 (alumnos/profesores/cursos/matriculas).")
+    parser = argparse.ArgumentParser(description="Crea el esquema del Tema 5 (alumnos/profesores/asignaturas/matriculas).")
     parser.add_argument("--drop", action="store_true", help="Borra tablas antes de crear.")
     args = parser.parse_args()
     create_schema(drop=args.drop)

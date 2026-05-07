@@ -2,14 +2,14 @@ from __future__ import annotations
 import psycopg
 from config import load_config
 DDL = (
-    '''DROP VIEW IF EXISTS vista_alumnos_profesores_cursos CASCADE;''',
+    '''DROP VIEW IF EXISTS vista_alumnos_profesores_asignaturas CASCADE;''',
     '''DROP TABLE IF EXISTS matriculas CASCADE;''',
-    '''DROP TABLE IF EXISTS cursos CASCADE;''',
+    '''DROP TABLE IF EXISTS asignaturas CASCADE;''',
     '''DROP TABLE IF EXISTS alumnos CASCADE;''',
     '''DROP TABLE IF EXISTS profesores CASCADE;''',
     '''DROP TABLE IF EXISTS audit_profesores CASCADE;''',
     '''DROP TABLE IF EXISTS audit_alumnos CASCADE;''',
-    '''DROP TABLE IF EXISTS audit_cursos CASCADE;''',
+    '''DROP TABLE IF EXISTS audit_asignaturas CASCADE;''',
 
     '''CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;''',
     '''CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;''',
@@ -39,9 +39,9 @@ DDL = (
         dinero FLOAT NOT NULL
     );''',
 
-    # Tabla Cursos
-    '''CREATE TABLE cursos (
-        id_curso SERIAL PRIMARY KEY,
+    # Tabla Asignaturas
+    '''CREATE TABLE asignaturas (
+        id_asignatura SERIAL PRIMARY KEY,
         nombres_multi JSONB NOT NULL,
         id_profesor INTEGER NOT NULL REFERENCES profesores(id_profesor) ON DELETE CASCADE,
         capacidad_max INTEGER NOT NULL,
@@ -51,14 +51,14 @@ DDL = (
     # Matrículas
     '''CREATE TABLE matriculas (
         id_alumno INTEGER NOT NULL REFERENCES alumnos(id_alumno) ON DELETE CASCADE,
-        id_curso INTEGER NOT NULL REFERENCES cursos(id_curso) ON DELETE CASCADE,
-        PRIMARY KEY (id_alumno, id_curso)
+        id_asignatura INTEGER NOT NULL REFERENCES asignaturas(id_asignatura) ON DELETE CASCADE,
+        PRIMARY KEY (id_alumno, id_asignatura)
     );''',
 
     # auditoria
-    '''CREATE TABLE audit_cursos(
+    '''CREATE TABLE audit_asignaturas(
         operacion CHAR(1), stamp TIMESTAMP, user_id VARCHAR(100), 
-        id_curso INTEGER, nombres_multi JSONB, id_profesor INTEGER, 
+        id_asignatura INTEGER, nombres_multi JSONB, id_profesor INTEGER, 
         capacidad_max INTEGER, precio FLOAT
     );''',
 
@@ -85,36 +85,36 @@ DDL = (
         dinero          FLOAT
     );''',
 
-    '''CREATE OR REPLACE FUNCTION fn_audit_cursos() RETURNS TRIGGER AS $$
+    '''CREATE OR REPLACE FUNCTION fn_audit_asignaturas() RETURNS TRIGGER AS $$
     DECLARE r record;
     BEGIN
         r := CASE WHEN (TG_OP = 'DELETE') THEN OLD ELSE NEW END;
-        INSERT INTO audit_cursos VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, 
-        r.id_curso, r.nombres_multi, r.id_profesor, r.capacidad_max, r.precio);
+        INSERT INTO audit_asignaturas VALUES (SUBSTR(TG_OP, 1, 1), now(), current_user, 
+        r.id_asignatura, r.nombres_multi, r.id_profesor, r.capacidad_max, r.precio);
         RETURN r;
     END; $$ LANGUAGE plpgsql;''',
 
-    '''CREATE TRIGGER tr_audit_cursos AFTER INSERT OR UPDATE OR DELETE ON cursos
-       FOR EACH ROW EXECUTE FUNCTION fn_audit_cursos();''',
+    '''CREATE TRIGGER tr_audit_asignaturas AFTER INSERT OR UPDATE OR DELETE ON asignaturas
+       FOR EACH ROW EXECUTE FUNCTION fn_audit_asignaturas();''',
 
     # 6. VISTA
-    '''CREATE VIEW vista_alumnos_profesores_cursos AS
+    '''CREATE VIEW vista_alumnos_profesores_asignaturas AS
     SELECT a.nombre || ' ' || a.apellido AS nombre_alumno,
            p.nombre || ' ' || p.apellido AS nombre_profesor,
-           c.nombres_multi->>'es' AS nombre_curso
+           c.nombres_multi->>'es' AS nombre_asignatura
     FROM matriculas m
     JOIN alumnos a ON m.id_alumno = a.id_alumno
-    JOIN cursos c ON m.id_curso = c.id_curso
+    JOIN asignaturas c ON m.id_asignatura = c.id_asignatura
     JOIN profesores p ON c.id_profesor = p.id_profesor;''',
 
     # ÍNDICES 
     
-    '''CREATE INDEX idx_cursos_nombres_jsonb ON cursos USING GIN (nombres_multi);''',
+    '''CREATE INDEX idx_asignaturas_nombres_jsonb ON asignaturas USING GIN (nombres_multi);''',
     
-    '''CREATE INDEX idx_cursos_fuzzy_es ON cursos 
+    '''CREATE INDEX idx_asignaturas_fuzzy_es ON asignaturas 
        USING gist (unaccent_immutable(nombres_multi->>'es') gist_trgm_ops);''',
     
-    '''CREATE INDEX idx_cursos_fuzzy_en ON cursos 
+    '''CREATE INDEX idx_asignaturas_fuzzy_en ON asignaturas 
        USING gist (unaccent_immutable(nombres_multi->>'en') gist_trgm_ops);''',
 
     '''CREATE INDEX idx_alumnos_nombre ON alumnos (nombre);''',

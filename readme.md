@@ -29,11 +29,11 @@ El sistema utiliza un modelo relacional para gestionar la información académic
 | `dni` | VARCHAR(20) | NOT NULL, UNIQUE |
 | `dinero` | FLOAT | NOT NULL (Saldo para matrículas) |
 
-### 1.3. Tabla: Cursos
+### 1.3. Tabla: Asignaturas
 | Columna | Tipo de dato | Restricciones |
 | :--- | :--- | :--- |
-| `id_curso` | SERIAL | PRIMARY KEY |
-| `nombre_curso` | VARCHAR(100) | NOT NULL |
+| `id_asignatura` | SERIAL | PRIMARY KEY |
+| `nombre_asignatura` | VARCHAR(100) | NOT NULL |
 | `id_profesor` | INTEGER | FK → `profesores(id_profesor)` (ON DELETE CASCADE) |
 | `capacidad_max` | INTEGER | NOT NULL (Límite de alumnos) |
 | `precio` | FLOAT | NOT NULL |
@@ -42,15 +42,15 @@ El sistema utiliza un modelo relacional para gestionar la información académic
 | Columna | Tipo de dato | Restricciones |
 | :--- | :--- | :--- |
 | `id_alumno` | INTEGER | FK → `alumnos(id_alumno)` (ON DELETE CASCADE) |
-| `id_curso` | INTEGER | FK → `cursos(id_curso)` (ON DELETE CASCADE) |
-| **PK Compuesta** | | `PRIMARY KEY (id_alumno, id_curso)` |
+| `id_asignatura` | INTEGER | FK → `asignaturas(id_asignatura)` (ON DELETE CASCADE) |
+| **PK Compuesta** | | `PRIMARY KEY (id_alumno, id_asignatura)` |
 
 ---
 
 ## 2. Lógica Avanzada de Base de Datos
 
 ### 2.1. Sistema de Auditoría (Triggers)
-Se han implementado tablas de auditoría (`audit_profesores`, `audit_alumnos`, `audit_cursos`) y funciones en **PL/pgSQL** para rastrear cada operación (INSERT, UPDATE, DELETE). Esto garantiza que, incluso si se elimina un registro, quede constancia de quién realizó la acción y qué datos existían previamente.
+Se han implementado tablas de auditoría (`audit_profesores`, `audit_alumnos`, `audit_asignaturas`) y funciones en **PL/pgSQL** para rastrear cada operación (INSERT, UPDATE, DELETE). Esto garantiza que, incluso si se elimina un registro, quede constancia de quién realizó la acción y qué datos existían previamente.
 
 ### 2.2. Matriculación Transaccional
 El proceso de inscripción de alumnos no es una simple inserción; se ha diseñado como una **transacción ACID** que incluye:
@@ -80,10 +80,10 @@ El proceso de inscripción de alumnos no es una simple inserción; se ha diseña
 | `profesores.list_` | GET | `/profesores` | Listado de docentes. |
 | `profesores.new_profesor` | GET, POST | `/profesores/nuevo` | Registro de docente. |
 | `profesores.auditoria_profesores` | GET | `/profesores/auditoria` | Log de cambios. |
-| **Cursos** | | | |
-| `cursos.list_` | GET | `/cursos` | Catálogo y precios. |
-| `cursos.new_curso` | GET, POST | `/cursos/nuevo` | Crear curso. |
-| `cursos.auditoria_cursos` | GET | `/cursos/auditoria` | Historial de precios/cupos. |
+| **Asignaturas** | | | |
+| `asignaturas.list_` | GET | `/asignaturas` | Catálogo y precios. |
+| `asignaturas.new_asignatura` | GET, POST | `/asignaturas/nuevo` | Crear asignatura. |
+| `asignaturas.auditoria_asignaturas` | GET | `/asignaturas/auditoria` | Historial de precios/cupos. |
 | **Matrículas** | | | |
 | `matriculas.list_` | GET | `/matriculas` | Ver inscripciones actuales. |
 | `matriculas.matricular_alumno` | GET, POST | `/matriculas/nuevo` | **Proceso Transaccional**. |

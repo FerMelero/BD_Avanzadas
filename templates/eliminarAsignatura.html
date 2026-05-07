@@ -1,13 +1,13 @@
 {% extends "base.html" %}
-{% block title %}Confirmar Eliminación de Curso{% endblock %}
+{% block title %}Confirmar Eliminación de Asignatura{% endblock %}
 
 {% block content %}
 <div style="max-width: 550px; margin: 50px auto; border: 2px solid #dc3545; padding: 25px; border-radius: 10px; text-align: center; background-color: #000000;">
     <h1 style="color: #dc3545; margin-top: 0;">Atención</h1>
     
     <p style="font-size: 1.1em;">
-        ¿Estás seguro de que deseas eliminar el curso: <br>
-        <strong style="font-size: 1.3em;">"{{ curso.nombre_curso.es }} ({{ curso.nombre_curso.en }})"</strong>?
+        ¿Estás seguro de que deseas eliminar el asignatura: <br>
+        <strong style="font-size: 1.3em;">"{{ asignatura.nombre_asignatura.es }} ({{ asignatura.nombre_asignatura.en }})"</strong>?
     </p>
 
     <div style="background-color: #f8d7da; color: #721c24; padding: 15px; border-radius: 5px; margin: 20px 0; text-align: left;">
@@ -19,13 +19,13 @@
     </div>
 
     <div style="margin-top: 30px;">
-        <form method="POST" action="{{ url_for('cursos.eliminar_curso', id_curso=curso.id_curso) }}" style="display: inline-block;">
+        <form method="POST" action="{{ url_for('asignaturas.eliminar_asignatura', id_asignatura=asignatura.id_asignatura) }}" style="display: inline-block;">
             <button type="submit" style="background-color: #dc3545; color: white; padding: 12px 24px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 1em;">
                 Sí, eliminar asignatura definitivamente
             </button>
         </form>
 
-        <a href="{{ url_for('cursos.list_') }}" style="display: inline-block; margin-left: 15px; padding: 12px 24px; text-decoration: none; background-color: #6c757d; color: white; border-radius: 4px; font-weight: bold;">
+        <a href="{{ url_for('asignaturas.list_') }}" style="display: inline-block; margin-left: 15px; padding: 12px 24px; text-decoration: none; background-color: #6c757d; color: white; border-radius: 4px; font-weight: bold;">
             No, cancelar
         </a>
     </div>

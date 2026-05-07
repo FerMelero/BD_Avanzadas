@@ -14,12 +14,12 @@
     </div>
 
     <div>
-        <label>Curso:</label>
-        <select name="id_curso" required>
-            <option value="" disabled selected>-- Selecciona curso --</option>
-            {% for cur in cursos %}
-                <option value="{{ cur.id_curso }}">
-                    {{ cur.nombre_curso.es }} ({{ cur.nombre_curso.en }})
+        <label>Asignatura:</label>
+        <select name="id_asignatura" required>
+            <option value="" disabled selected>-- Selecciona asignatura --</option>
+            {% for cur in asignaturas %}
+                <option value="{{ cur.id_asignatura }}">
+                    {{ cur.nombre_asignatura.es }} ({{ cur.nombre_asignatura.en }})
                 </option>
             {% endfor %}
         </select>

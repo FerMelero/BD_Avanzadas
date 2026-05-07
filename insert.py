@@ -32,22 +32,22 @@ def insert_alumno(nombre: str, apellido: str, fecha_nacimiento: str, dni: str, d
             cur.execute(sql, (nombre, apellido, fecha_nacimiento, dni, dinero))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
-# insertamos curso y devolvemos los ids para su futuro uso
-def insert_cursos(nombre_curso: str, id_profesor: int, capacidad_max: int, precio: float) -> int:
-    sql = "INSERT INTO cursos(nombre_curso, id_profesor, capacidad_max, precio) VALUES (%s, %s, %s, %s) RETURNING id_curso;"
+# insertamos asignatura y devolvemos los ids para su futuro uso
+def insert_asignaturas(nombre_asignatura: str, id_profesor: int, capacidad_max: int, precio: float) -> int:
+    sql = "INSERT INTO asignaturas(nombre_asignatura, id_profesor, capacidad_max, precio) VALUES (%s, %s, %s, %s) RETURNING id_asignatura;"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (nombre_curso, id_profesor, capacidad_max, precio))
+            cur.execute(sql, (nombre_asignatura, id_profesor, capacidad_max, precio))
             return cur.fetchone()[0] # nos sirve para devolver el ID
 
 # no hace falta devolver id porque es la relación entre 2 tablas
-def insert_matriculas(id_curso: int, id_alumno: int) -> int:
-    sql = "INSERT INTO matriculas(id_curso, id_alumno) VALUES (%s, %s);"
+def insert_matriculas(id_asignatura: int, id_alumno: int) -> int:
+    sql = "INSERT INTO matriculas(id_asignatura, id_alumno) VALUES (%s, %s);"
     cfg = load_config()
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
-            cur.execute(sql, (id_curso, id_alumno))
+            cur.execute(sql, (id_asignatura, id_alumno))
     return True
 
 '''
@@ -74,9 +74,9 @@ def fake_alumno():
     }
 # los parámetros del servidor no se tocan para obtener mejores consultas sino más rápido
 
-def fake_curso(profesores_ids):
+def fake_asignatura(profesores_ids):
     return {
-        "nombre_curso": fake.word(),
+        "nombre_asignatura": fake.word(),
         "id_profesor": random.choice(profesores_ids),
         "capacidad_max": random.randint(15, 40),
         "precio": round(random.uniform(50, 400), 2)
@@ -109,31 +109,31 @@ def final_insert_profesores(val):
     print("Listo.")
     return profesores_ids
 
-def final_insert_cursos(val, profesores_ids):
-    print("Insertando CURSOS")
-    cursos_ids = [] # almacenar IDS temporalmente
+def final_insert_asignaturas(val, profesores_ids):
+    print("Insertando ASIGNATURAS")
+    asignaturas_ids = [] # almacenar IDS temporalmente
 
     for _ in range(val):
-        curso = fake_curso(profesores_ids)
-        curso_id = insert_cursos(
-            curso["nombre_curso"],
-            curso["id_profesor"],
-            curso["capacidad_max"],
-            curso["precio"]
+        asignatura = fake_asignatura(profesores_ids)
+        asignatura_id = insert_asignaturas(
+            asignatura["nombre_asignatura"],
+            asignatura["id_profesor"],
+            asignatura["capacidad_max"],
+            asignatura["precio"]
         )
-        cursos_ids.append(curso_id)
+        asignaturas_ids.append(asignatura_id)
 
     print("Listo.")
-    return cursos_ids
+    return asignaturas_ids
 
-def final_insert_matriculas(cursos_ids, alumnos_ids, alumnos_por_curso=5):
+def final_insert_matriculas(asignaturas_ids, alumnos_ids, alumnos_por_asignatura=5):
     print("Insertando MATRICULAS")
 
-    for curso_id in cursos_ids:
-        alumnos_curso = random.sample(alumnos_ids, min(alumnos_por_curso, len(alumnos_ids))) # controlar la inserción
+    for asignatura_id in asignaturas_ids:
+        alumnos_asignatura = random.sample(alumnos_ids, min(alumnos_por_asignatura, len(alumnos_ids))) # controlar la inserción
 
-        for alumno_id in alumnos_curso:
-            insert_matriculas(curso_id, alumno_id)
+        for alumno_id in alumnos_asignatura:
+            insert_matriculas(asignatura_id, alumno_id)
 
     print("Matrículas insertadas.")
 

@@ -17,10 +17,10 @@
 
 <ul>
 
-{% for c in cursos %}
-    <li>{{ c.nombre_curso.es }} ({{ c.nombre_curso.en }}), {{c.id_curso}}</li>
+{% for c in asignaturas %}
+    <li>{{ c.nombre_asignatura.es }} ({{ c.nombre_asignatura.en }}), {{c.id_asignatura}}</li>
 {% else %}
-    <li>No está inscrito a cursos</li>
+    <li>No está inscrito a asignaturas</li>
 {% endfor %}
 
 </ul>

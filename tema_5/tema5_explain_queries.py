@@ -12,8 +12,8 @@ SQL_BY_PROFESOR = """
 SELECT
     c.profesor_id,
     COUNT(DISTINCT m.alumno_id) AS alumnos_distintos
-FROM cursos c
-JOIN matriculas m ON m.curso_id = c.curso_id
+FROM asignaturas c
+JOIN matriculas m ON m.asignatura_id = c.asignatura_id
 WHERE c.profesor_id = %s
 GROUP BY c.profesor_id;
 """
@@ -23,13 +23,13 @@ SELECT
     m.alumno_id,
     COUNT(DISTINCT c.profesor_id) AS profesores_distintos
 FROM matriculas m
-JOIN cursos c ON c.curso_id = m.curso_id
+JOIN asignaturas c ON c.asignatura_id = m.asignatura_id
 WHERE m.alumno_id = %s
 GROUP BY m.alumno_id;
 """
 
 
-def explain(cur: psycopg.Cursor, sql: str, params: tuple) -> None:
+def explain(cur: psycopg.cursor, sql: str, params: tuple) -> None:
     stmt = "EXPLAIN (ANALYZE, BUFFERS, VERBOSE) " + sql
     cur.execute(stmt, params)
     rows = cur.fetchall()
@@ -46,14 +46,14 @@ def main() -> None:
     with psycopg.connect(**cfg) as conn:
         with conn.cursor() as cur:
             print("=" * 80)
-            print("CONSULTA 1 (por profesor) — objetivo: cursos del profesor y alumnos distintos")
+            print("CONSULTA 1 (por profesor) — objetivo: asignaturas del profesor y alumnos distintos")
             print("=" * 80)
             print(textwrap.dedent(SQL_BY_PROFESOR).strip())
             print("-" * 80)
             explain(cur, SQL_BY_PROFESOR, (args.profesor_id,))
 
             print("\n" + "=" * 80)
-            print("CONSULTA 2 (por alumno) — objetivo: cursos del alumno y profesores distintos")
+            print("CONSULTA 2 (por alumno) — objetivo: asignaturas del alumno y profesores distintos")
             print("=" * 80)
             print(textwrap.dedent(SQL_BY_ALUMNO).strip())
             print("-" * 80)

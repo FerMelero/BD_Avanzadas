@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_profesores, get_profesor_by_id, get_cursos_by_profesor, view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor, search_profesores, curso_caro_by_profesor
+from models.db import get_profesores, get_profesor_by_id, get_asignaturas_by_profesor, view_audit_profesores, crear_profesor, modificar_profesor, delete_profesor, search_profesores, asignatura_caro_by_profesor
 
 
 profesores_bp = Blueprint("profesores", __name__, url_prefix="/profesores")
@@ -50,11 +50,11 @@ def list_():
 def view_profesor(id_profesor):
     print("ID recibido:", id_profesor) # depuración
     profesor = get_profesor_by_id(id_profesor) # pasar un ID a la función y pasarlo para render
-    cursos = get_cursos_by_profesor(id_profesor)
+    asignaturas = get_asignaturas_by_profesor(id_profesor)
     return render_template(
         "idProfesor.html",
         profesor=profesor,
-        cursos=cursos
+        asignaturas=asignaturas
         
     )
 
@@ -111,11 +111,11 @@ def eliminar_profesor(id_profesor):
         
     return render_template("eliminarProfesor.html", profesor=profesor)
 
-@profesores_bp.route("/cursosCaros/<int:id_profesor>") # le pasamos un ID
-def curso_caro_profesor(id_profesor):
-    resultado = curso_caro_by_profesor(id_profesor)
+@profesores_bp.route("/asignaturasCaros/<int:id_profesor>") # le pasamos un ID
+def asignatura_caro_profesor(id_profesor):
+    resultado = asignatura_caro_by_profesor(id_profesor)
     return render_template(
-        "cursoCaroId.html",
+        "asignaturaCaroId.html",
         profesor=resultado
         
     )

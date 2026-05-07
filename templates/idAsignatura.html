@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block title %}Asignatura{% endblock %}
+
+{% block content %}
+{% if asignatura %}
+    <h2 style="color: #ffffff;">{{ asignatura.nombre_asignatura.es }}</h2>
+    <h2 style="color: #ffffff;">{{ asignatura.nombre_asignatura.en }}</h2>
+    
+    <h3 style="color: #ffffff;">Alumnos matriculados</h3>
+    <ul style="color: #ffffff;">
+    {% for a in alumnos %}
+        <li>{{ a.nombre }} {{ a.apellido }}</li>
+    {% else %}
+        <li>No hay alumnos matriculados</li>
+    {% endfor %}
+    </ul>
+{% else %}
+    <p style="color: #ffffff;">No existe ese asignatura.</p>
+{% endif %}
+<a href="{{ url_for('asignaturas.eliminar_asignatura', id_asignatura=asignatura.id_asignatura) }}">Eliminar asignatura</a>
+{% endblock %}

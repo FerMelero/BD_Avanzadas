@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_cursos_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno, search_alumnos
+from models.db import get_alumnos, get_alumno_by_id, get_asignaturas_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno, search_alumnos
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -81,11 +81,11 @@ def list_():
 def view_alumno(id_alumno):
     print("ID recibido:", id_alumno) # depuración
     alumno = get_alumno_by_id(id_alumno) # pasar un ID a la función y pasarlo para render
-    curso = get_cursos_by_alumno(id_alumno)
+    asignatura = get_asignaturas_by_alumno(id_alumno)
     return render_template(
         "idAlumno.html",
         alumno=alumno,
-        cursos = curso
+        asignaturas = asignatura
     )
 
 @alumnos_bp.route("/nuevo", methods=["GET", "POST"])

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from flask import Flask, redirect, render_template, request, session, url_for
-from routes import main_bp, alumnos_bp, profesores_bp, cursos_bp, matriculas_bp, auth_bp
+from routes import main_bp, alumnos_bp, profesores_bp, asignaturas_bp, matriculas_bp, auth_bp
 
 def create_app() -> Flask:
     app = Flask(__name__)
@@ -12,7 +12,7 @@ def create_app() -> Flask:
     app.register_blueprint(main_bp)
     app.register_blueprint(alumnos_bp)
     app.register_blueprint(profesores_bp)
-    app.register_blueprint(cursos_bp)
+    app.register_blueprint(asignaturas_bp)
     app.register_blueprint(matriculas_bp)
 
     # comprobar que hay login

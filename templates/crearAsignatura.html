@@ -1,10 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Nuevo Curso{% endblock %}
+{% block title %}Nuevo Asignatura{% endblock %}
 
 {% block content %}
 <h1 style="color: #ffffff;">Crear Nueva Asignatura</h1>
 
-<form method="POST" action="{{ url_for('cursos.new_curso') }}" style="max-width: 500px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; color: #000000;">
+<form method="POST" action="{{ url_for('asignaturas.new_asignatura') }}" style="max-width: 500px; background: #f9f9f9; padding: 20px; border-radius: 8px; border: 1px solid #ddd; color: #000000;">
     
     <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #ccc; border-left: 5px solid #007bff; background: #ffffff;">
         <label style="font-weight: bold; color: #000000;">Configuración Multi-idioma</label>
@@ -47,7 +47,7 @@
         <button type="submit" style="background-color: #28a745; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
             Guardar Asignatura
         </button>
-        <a href="{{ url_for('cursos.list_') }}" style="margin-left: 15px; color: #000000; text-decoration: underline;">Cancelar</a>
+        <a href="{{ url_for('asignaturas.list_') }}" style="margin-left: 15px; color: #000000; text-decoration: underline;">Cancelar</a>
     </div>
 </form>
 {% endblock %}

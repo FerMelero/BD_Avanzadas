@@ -7,7 +7,7 @@
   <ul class="list">
     <li><a href="{{ url_for('alumnos.list_') }}">Alumnos</a></li>
     <li><a href="{{ url_for('profesores.list_') }}">Profesores</a></li>
-    <li><a href="{{ url_for('cursos.list_') }}">Asignatura</a></li>
+    <li><a href="{{ url_for('asignaturas.list_') }}">Asignatura</a></li>
     <li><a href="{{ url_for('matriculas.list_') }}">Matriculas</a></li>
     <li><a href="{{ url_for('matriculas.vista_matriculas') }}">Alumnos - Profesores - Asignatura</a></li>
 
@@ -16,7 +16,7 @@
     <li><strong>Crear</strong></li>
     <li><a href="{{ url_for('alumnos.new_alumno') }}">Nuevo Alumno</a></li>
     <li><a href="{{ url_for('profesores.new_profesor') }}">Nuevo Profesor</a></li>
-    <li><a href="{{ url_for('cursos.new_curso') }}">Nueva Asignatura</a></li>
+    <li><a href="{{ url_for('asignaturas.new_asignatura') }}">Nueva Asignatura</a></li>
     <li><a href="{{ url_for('matriculas.matricular_alumno') }}">Nueva Matrícula</a></li>
 
     <hr>
@@ -24,15 +24,15 @@
     <li><strong>Auditoría</strong></li>
     <li><a href="{{ url_for('alumnos.auditoria_alumnos') }}">Auditoría Alumnos</a></li>
     <li><a href="{{ url_for('profesores.auditoria_profesores') }}">Auditoría Profesores</a></li>
-    <li><a href="{{ url_for('cursos.auditoria_cursos') }}">Auditoría Asignaturas</a></li>
+    <li><a href="{{ url_for('asignaturas.auditoria_asignaturas') }}">Auditoría Asignaturas</a></li>
 
     <hr>
 
     <li><strong>OLAP / Reportes</strong></li>
-    <li><a href="{{ url_for('cursos.dinero') }}">Dinero Asignaturas</a></li>
-    <li><a href="{{ url_for('cursos.estadisticas_precios') }}">Estadísticas Precios</a></li>
-    <li><a href="{{ url_for('cursos.reporte_capacidades') }}">Reporte Capacidades</a></li>
-    <li><a href="{{ url_for('profesores.curso_caro_profesor', id_profesor=1) }}">Curso más caro por profesor</a></li>
+    <li><a href="{{ url_for('asignaturas.dinero') }}">Dinero Asignaturas</a></li>
+    <li><a href="{{ url_for('asignaturas.estadisticas_precios') }}">Estadísticas Precios</a></li>
+    <li><a href="{{ url_for('asignaturas.reporte_capacidades') }}">Reporte Capacidades</a></li>
+    <li><a href="{{ url_for('profesores.asignatura_caro_profesor', id_profesor=1) }}">Asignatura más caro por profesor</a></li>
 
     <hr>
 

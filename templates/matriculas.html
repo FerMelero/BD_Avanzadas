@@ -2,7 +2,7 @@
 {% block title %}Matrículas{% endblock %}
 
 {% block content %}
-  <h1>Relación Alumnos - Cursos</h1>
+  <h1>Relación Alumnos - Asignaturas</h1>
   
   <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
   <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
@@ -11,8 +11,8 @@
       <label>ID Alumno: 
         <input type="number" name="id_alumno" value="{{ id_alumno or '' }}" placeholder="ID del alumno">
       </label>
-      <label>ID Curso: 
-        <input type="number" name="id_curso" value="{{ id_curso or '' }}" placeholder="ID del curso">
+      <label>ID Asignatura: 
+        <input type="number" name="id_asignatura" value="{{ id_asignatura or '' }}" placeholder="ID del asignatura">
       </label>
       <label>Por página: 
         <input type="number" name="limit" value="{{ limit }}" min="1" max="100">
@@ -53,11 +53,11 @@
   {% if matriculas %}
   <div style="margin-top: 15px; text-align: center;">
     {% if page > 1 %}
-      <a href="{{ url_for('matriculas.list_', page=page-1, limit=limit, id_alumno=id_alumno, id_curso=id_curso) }}">← Anterior</a>
+      <a href="{{ url_for('matriculas.list_', page=page-1, limit=limit, id_alumno=id_alumno, id_asignatura=id_asignatura) }}">← Anterior</a>
     {% endif %}
     <span style="margin: 0 10px;">Página {{ page }}</span>
     {% if matriculas|length == limit %}
-      <a href="{{ url_for('matriculas.list_', page=page+1, limit=limit, id_alumno=id_alumno, id_curso=id_curso) }}">Siguiente →</a>
+      <a href="{{ url_for('matriculas.list_', page=page+1, limit=limit, id_alumno=id_alumno, id_asignatura=id_asignatura) }}">Siguiente →</a>
     {% endif %}
   </div>
   {% endif %}

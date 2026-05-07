@@ -6,12 +6,12 @@ from config import load_config
 
 
 DDL = [
-    # Patrón: por profesor -> cursos
-    "CREATE INDEX IF NOT EXISTS idx_cursos_profesor_id ON cursos(profesor_id);",
+    # Patrón: por profesor -> asignaturas
+    "CREATE INDEX IF NOT EXISTS idx_asignaturas_profesor_id ON asignaturas(profesor_id);",
     # Patrón: por alumno -> matriculas
     "CREATE INDEX IF NOT EXISTS idx_matriculas_alumno_id ON matriculas(alumno_id);",
-    # Patrón: por curso -> matriculas
-    "CREATE INDEX IF NOT EXISTS idx_matriculas_curso_id ON matriculas(curso_id);",
+    # Patrón: por asignatura -> matriculas
+    "CREATE INDEX IF NOT EXISTS idx_matriculas_asignatura_id ON matriculas(asignatura_id);",
 ]
 
 

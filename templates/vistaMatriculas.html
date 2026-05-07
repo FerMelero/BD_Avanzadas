@@ -15,7 +15,7 @@
         <input type="text" name="nombre_profesor" value="{{ nombre_profesor or '' }}" placeholder="Buscar por profesor">
       </label>
       <label>Nombre Asignatura: 
-        <input type="text" name="nombre_curso" value="{{ nombre_curso or '' }}" placeholder="Buscar por curso">
+        <input type="text" name="nombre_asignatura" value="{{ nombre_asignatura or '' }}" placeholder="Buscar por asignatura">
       </label>
       <label>Por página: 
         <input type="number" name="limit" value="{{ limit }}" min="1" max="100">
@@ -38,7 +38,7 @@
       <tr>
         <td>{{ fila.nombre_alumno }}</td>
         <td>{{ fila.nombre_profesor }}</td>
-        <td>{{ fila.nombre_curso }}</td>
+        <td>{{ fila.nombre_asignatura }}</td>
       </tr>
       {% else %}
       <tr>
@@ -52,11 +52,11 @@
   {% if vista %}
   <div style="margin-top: 15px; text-align: center;">
     {% if page > 1 %}
-      <a href="{{ url_for('matriculas.vista_matriculas', page=page-1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_curso=nombre_curso) }}">← Anterior</a>
+      <a href="{{ url_for('matriculas.vista_matriculas', page=page-1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_asignatura=nombre_asignatura) }}">← Anterior</a>
     {% endif %}
     <span style="margin: 0 10px;">Página {{ page }}</span>
     {% if vista|length == limit %}
-      <a href="{{ url_for('matriculas.vista_matriculas', page=page+1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_curso=nombre_curso) }}">Siguiente →</a>
+      <a href="{{ url_for('matriculas.vista_matriculas', page=page+1, limit=limit, nombre_alumno=nombre_alumno, nombre_profesor=nombre_profesor, nombre_asignatura=nombre_asignatura) }}">Siguiente →</a>
     {% endif %}
   </div>
   {% endif %}

@@ -7,12 +7,12 @@ from config import load_config
 
 DDL = [
     # Índice compuesto (elige el orden según navegación dominante)
-    # Aquí elegimos (curso_id, alumno_id) porque la consulta por profesor entra por cursos y luego baja a matriculas por curso.
-    "CREATE INDEX IF NOT EXISTS idx_matriculas_curso_alumno ON matriculas(curso_id, alumno_id);",
+    # Aquí elegimos (asignatura_id, alumno_id) porque la consulta por profesor entra por asignaturas y luego baja a matriculas por asignatura.
+    "CREATE INDEX IF NOT EXISTS idx_matriculas_asignatura_alumno ON matriculas(asignatura_id, alumno_id);",
     # Unicidad (si el modelo lo exige): evita duplicados y además crea un índice útil.
     # OJO: si tu dataset genera duplicados, este UNIQUE fallará.
     # Actívalo solo si primero generas matriculas sin duplicados, o si limpias staging.
-    # "ALTER TABLE matriculas ADD CONSTRAINT uq_matriculas_alumno_curso UNIQUE (alumno_id, curso_id);"
+    # "ALTER TABLE matriculas ADD CONSTRAINT uq_matriculas_alumno_asignatura UNIQUE (alumno_id, asignatura_id);"
 ]
 
 

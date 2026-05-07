@@ -24,9 +24,9 @@ class Profesor:
     dni: str
 
 @dataclass(frozen=True)
-class Cursos:
-    id_curso: int
-    nombre_curso: str
+class Asignaturas:
+    id_asignatura: int
+    nombre_asignatura: str
     id_profesor: int
     precio: float
     capacidad_max: int
@@ -34,16 +34,16 @@ class Cursos:
 @dataclass(frozen=True)
 class Matriculas:
     id_alumno: int
-    id_curso: int
+    id_asignatura: int
 
 @dataclass(frozen=True)
-class AuditCurso:
+class Auditasignatura:
     operacion: str
     stamp: date
     user_id: str
-    nombre_curso: str
-    id_curso: int
-    precio_curso: float
+    nombre_asignatura: str
+    id_asignatura: int
+    precio_asignatura: float
 
 @dataclass(frozen=True)
 class AuditProfesor:
@@ -69,11 +69,11 @@ class AuditAlumno:
     dinero: float
 
 @dataclass(frozen=True)
-class AuditCurso:
+class Auditasignatura:
     operacion: str
     stamp: date
     user_id: str
-    id_curso: int
+    id_asignatura: int
     nombres_multi: json
     id_profesor: int
     capacidad_max: int

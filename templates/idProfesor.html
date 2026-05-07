@@ -19,14 +19,14 @@
 <h3>Asignaturas que imparte</h3>
 
 <ul>
-{% for curso in cursos %}
+{% for asignatura in asignaturas %}
     <li>
-        <strong>{{ curso.nombre_curso.es }} {{ curso.nombre_curso.en }}</strong> (ID: {{ curso.id_curso }}) — 
-        <span>Precio: {{ curso.precio }}€</span> | 
-        <span>Capacidad: {{ curso.capacidad_max }} alumnos</span>
+        <strong>{{ asignatura.nombre_asignatura.es }} {{ asignatura.nombre_asignatura.en }}</strong> (ID: {{ asignatura.id_asignatura }}) — 
+        <span>Precio: {{ asignatura.precio }}€</span> | 
+        <span>Capacidad: {{ asignatura.capacidad_max }} alumnos</span>
     </li>
 {% else %}
-    <li>No imparte cursos</li>
+    <li>No imparte asignaturas</li>
 {% endfor %}
 </ul>
 
@@ -34,6 +34,6 @@
 <p>No hay profesor con ese ID.</p>
 {% endif %}
 <a href="{{ url_for('profesores.eliminar_profesor', id_profesor=profesor.id_profesor) }}">Eliminar profesor</a>
-<a href="{{ url_for('profesores.curso_caro_profesor', id_profesor=profesor.id_profesor) }}">ROWNUMBER profesor</a>
+<a href="{{ url_for('profesores.asignatura_caro_profesor', id_profesor=profesor.id_profesor) }}">ROWNUMBER profesor</a>
 
 {% endblock %}

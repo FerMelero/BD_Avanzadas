@@ -13,7 +13,7 @@ SELECT
     seq_scan,
     idx_scan
 FROM pg_stat_user_tables
-WHERE relname IN ('profesores','alumnos','cursos','matriculas')
+WHERE relname IN ('profesores','alumnos','asignaturas','matriculas')
 ORDER BY relname;
 """
 
@@ -25,7 +25,7 @@ SELECT
     idx_tup_read,
     idx_tup_fetch
 FROM pg_stat_user_indexes
-WHERE relname IN ('profesores','alumnos','cursos','matriculas')
+WHERE relname IN ('profesores','alumnos','asignaturas','matriculas')
 ORDER BY relname, indexrelname;
 """
 

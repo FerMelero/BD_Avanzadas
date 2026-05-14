@@ -17,7 +17,7 @@ Aplicacion web desarrollada con Flask y PostgreSQL para la gestion de alumnos, p
 ### 1. Clonar el repositorio
 
 ```bash
-git clone <url-del-repositorio>
+git clone https://github.com/FerMelero/BD_Avanzadas.git
 cd <nombre-del-proyecto>
 ```
 

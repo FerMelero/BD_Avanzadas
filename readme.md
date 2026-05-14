@@ -74,7 +74,8 @@ El proceso de inscripción de alumnos no es una simple inserción; se ha diseña
 | `alumnos.list_` | GET | `/alumnos` | Listado y saldos. |
 | `alumnos.new_alumno` | GET, POST | `/alumnos/nuevo` | Registro de alumno. |
 | `alumnos.edit_alumno` | GET, POST | `/alumnos/modificar/<id>` | Actualizar datos/dinero. |
-| `alumnos.eliminar_alumno` | GET, POST | `/alumnos/eliminar/<id>` | Baja de alumno. |
+| `alumnos.viajar_alumno` | GET, POST | `/alumnos/<id>/viajar` | Viajar un alumno a un aula. |
+| `alumnos.editar_ubicacion` | GET, POST | `/alumnos/<id>/editar-ubicacion` | Editar ubicación POINT del alumno. |
 | `alumnos.auditoria_alumnos` | GET | `/alumnos/auditoria` | Log de cambios. |
 | **Profesores** | | | |
 | `profesores.list_` | GET | `/profesores` | Listado de docentes. |
@@ -84,12 +85,22 @@ El proceso de inscripción de alumnos no es una simple inserción; se ha diseña
 | `asignaturas.list_` | GET | `/asignaturas` | Catálogo y precios. |
 | `asignaturas.new_asignatura` | GET, POST | `/asignaturas/nuevo` | Crear asignatura. |
 | `asignaturas.auditoria_asignaturas` | GET | `/asignaturas/auditoria` | Historial de precios/cupos. |
+| `asignaturas.editar_poligono` | GET, POST | `/asignaturas/<id>/editar-poligono` | Editar polígono POLYGON del aula. |
 | **Matrículas** | | | |
 | `matriculas.list_` | GET | `/matriculas` | Ver inscripciones actuales. |
 | `matriculas.matricular_alumno` | GET, POST | `/matriculas/nuevo` | **Proceso Transaccional**. |
 | `matriculas.demo_rollback` | GET | `/matriculas/demo-rollback` | Test de integridad. |
 
 ---
+
+> **Nota GIS**: La funcionalidad GIS usa PostGIS. Las nuevas tablas `alumno_ubicaciones` y `asignatura_poligonos` ahora usan tipos `geometry`.
+> Después de crear la base de datos y registrar alumnos/asignaturas, ejecute `python3 -m tema_14.tema14_gis` para asignar datos GIS automáticamente.
+> 
+> **Funcionalidades GIS:**
+> - **Viajar**: Mueve un alumno al centroide del aula de una asignatura
+> - **Editar ubicaciones**: Desde `/alumnos/<id>/editar-ubicacion`
+> - **Editar polígonos**: Desde `/asignaturas/<id>/editar-poligono`
+> - Solo asignaturas con polígonos aparecen en el dropdown de "Viajar"
 
 ## 4. Requisitos Previos
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import psycopg
 import json
+import re
 
 from config import load_config
 
@@ -130,6 +131,164 @@ def get_asignaturas_by_id(id_asignatura):
             if row:
                 return Asignaturas(*row) # ahora solo se devuelve un objeto que es una fila
             return None
+
+
+def get_alumno_ubicacion(id_alumno):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT ST_AsText(ubicacion) FROM alumno_ubicaciones WHERE id_alumno = %s;",
+                (id_alumno,)
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
+
+
+def get_asignatura_area(id_asignatura):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT ST_AsText(area) FROM asignatura_poligonos WHERE id_asignatura = %s;",
+                (id_asignatura,)
+            )
+            row = cur.fetchone()
+            return row[0] if row else None
+
+
+def get_asignaturas_con_area():
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT c.id_asignatura, c.nombres_multi, ST_AsText(ap.area)
+                FROM asignaturas c
+                LEFT JOIN asignatura_poligonos ap ON c.id_asignatura = ap.id_asignatura
+                ORDER BY c.id_asignatura;
+                """
+            )
+            return [
+                {
+                    "id_asignatura": row[0],
+                    "nombres_multi": row[1],
+                    "area": row[2]
+                }
+                for row in cur.fetchall()
+            ]
+
+
+def upsert_alumno_ubicacion(id_alumno, ubicacion_point_text):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            point_wkt = _normalize_point_text(ubicacion_point_text)
+            cur.execute(
+                """
+                INSERT INTO alumno_ubicaciones (id_alumno, ubicacion)
+                VALUES (%s, ST_GeomFromText(%s, 4326))
+                ON CONFLICT (id_alumno) DO UPDATE SET ubicacion = EXCLUDED.ubicacion;
+                """,
+                (id_alumno, point_wkt)
+            )
+            conn.commit()
+            return True
+
+
+def upsert_asignatura_poligono(id_asignatura, polygon_text):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            polygon_wkt = _normalize_polygon_text(polygon_text)
+            cur.execute(
+                """
+                INSERT INTO asignatura_poligonos (id_asignatura, area)
+                VALUES (%s, ST_GeomFromText(%s, 4326))
+                ON CONFLICT (id_asignatura) DO UPDATE SET area = EXCLUDED.area;
+                """,
+                (id_asignatura, polygon_wkt)
+            )
+            conn.commit()
+            return True
+
+
+def _parse_polygon_text(polygon_text):
+    if not polygon_text:
+        return []
+
+    text = polygon_text.strip()
+    if text.upper().startswith("POLYGON"):
+        start = text.find("((")
+        end = text.rfind("))")
+        if start != -1 and end != -1:
+            text = text[start + 2:end]
+        else:
+            text = text[text.find("(") + 1:text.rfind(")")]
+    elif text.startswith("((") and text.endswith("))"):
+        text = text[2:-2]
+    elif text.startswith("(") and text.endswith(")"):
+        text = text[1:-1]
+
+    points = []
+    if "),(" in text:
+        for part in text.split('),('):
+            part = part.strip('() ')
+            if not part:
+                continue
+            coords = [p.strip() for p in part.split(',') if p.strip()]
+            if len(coords) != 2:
+                raise ValueError("Formato de coordenadas inválido para el polígono.")
+            points.append((float(coords[0]), float(coords[1])))
+    else:
+        tokens = [t for t in re.split(r"[\s,]+", text) if t]
+        if len(tokens) % 2 != 0:
+            raise ValueError("Formato de coordenadas inválido para el polígono.")
+        for i in range(0, len(tokens), 2):
+            points.append((float(tokens[i]), float(tokens[i + 1])))
+
+    return points
+
+
+def _normalize_point_text(point_text):
+    if not point_text:
+        raise ValueError("El punto no puede estar vacío.")
+
+    text = point_text.strip()
+    if text.upper().startswith("POINT"):
+        inner = text[text.find("(") + 1:text.rfind(")")]
+    else:
+        inner = text.strip('() ')
+
+    coords = [c for c in re.split(r"[\s,]+", inner) if c]
+    if len(coords) != 2:
+        raise ValueError("Formato de punto inválido. Use (x, y) o POINT(x y).")
+
+    return f"POINT({coords[0]} {coords[1]})"
+
+
+def _normalize_polygon_text(polygon_text):
+    points = _parse_polygon_text(polygon_text)
+    if len(points) < 3:
+        raise ValueError("Un polígono debe tener al menos tres vértices.")
+
+    if points[0] != points[-1]:
+        points.append(points[0])
+
+    coords = ", ".join(f"{x} {y}" for x, y in points)
+    return f"POLYGON(({coords}))"
+
+
+def viajar_alumno_a_aula(id_alumno, id_asignatura):
+    with get_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT ST_AsText(ST_Centroid(area)) FROM asignatura_poligonos WHERE id_asignatura = %s;",
+                (id_asignatura,)
+            )
+            row = cur.fetchone()
+            if not row or not row[0]:
+                return "No existe un aula con polígono registrado para esa asignatura."
+
+            centroid_wkt = row[0]
+            upsert_alumno_ubicacion(id_alumno, centroid_wkt)
+            return True
+
 
 def get_alumnos_by_asignatura(id_asignatura):
     with get_connection() as conn:

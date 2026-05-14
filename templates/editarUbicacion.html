@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Editar Ubicación del Alumno{% endblock %}
+
+{% block content %}
+<h2>Editar ubicación</h2>
+{% if alumno %}
+  <p><strong>Alumno:</strong> {{ alumno.nombre }} {{ alumno.apellido }} (#{{ alumno.id_alumno }})</p>
+
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+
+  {% if exito %}
+    <p style="color: green;">{{ exito }}</p>
+  {% endif %}
+
+  <form method="post">
+    <label for="point">Ubicación (POINT - formato: (x, y)):</label><br>
+    <input 
+      type="text" 
+      id="point" 
+      name="point" 
+      style="width: 100%; padding: 0.5rem; font-family: monospace;"
+      placeholder="Ejemplo: (2.1700,41.3851)"
+      value="{{ ubicacion_actual or '' }}"
+      required
+    />
+
+    <div style="margin-top: 1rem;">
+      <button type="submit">Guardar Ubicación</button>
+      <a href="{{ url_for('alumnos.view_alumno', id_alumno=alumno.id_alumno) }}">Cancelar</a>
+    </div>
+  </form>
+
+{% else %}
+  <p>Alumno no encontrado.</p>
+{% endif %}
+{% endblock %}

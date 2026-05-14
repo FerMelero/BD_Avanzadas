@@ -3,7 +3,22 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_asignaturas, estadisticas_asignaturas_filter, get_asignaturas_by_id, get_alumnos_by_asignatura, crear_asignatura, get_profesores, modificar_asignatura, delete_asignatura, view_audit_asignaturas, search_asignaturas, dinero_recaudado_asignatura_y_profesor, capacidad_total_rollup
+from models.db import (
+    get_asignaturas,
+    estadisticas_asignaturas_filter,
+    get_asignaturas_by_id,
+    get_asignatura_area,
+    get_alumnos_by_asignatura,
+    crear_asignatura,
+    get_profesores,
+    modificar_asignatura,
+    delete_asignatura,
+    view_audit_asignaturas,
+    search_asignaturas,
+    dinero_recaudado_asignatura_y_profesor,
+    capacidad_total_rollup,
+    upsert_asignatura_poligono,
+)
 
 
 asignaturas_bp = Blueprint("asignaturas", __name__, url_prefix="/asignaturas")
@@ -106,17 +121,48 @@ def view_asignatura(id_asignatura):
 
     asignatura = get_asignaturas_by_id(id_asignatura)
     alumnos = get_alumnos_by_asignatura(id_asignatura)
+    area = get_asignatura_area(id_asignatura)
 
     return render_template(
         "idAsignatura.html",
         asignatura=asignatura,
-        alumnos=alumnos
+        alumnos=alumnos,
+        area=area
+    )
+
+@asignaturas_bp.route("/<int:id_asignatura>/editar-poligono", methods=["GET", "POST"])
+def editar_poligono(id_asignatura):
+    asignatura = get_asignaturas_by_id(id_asignatura)
+    if not asignatura:
+        return "Asignatura no encontrada", 404
+
+    area_actual = get_asignatura_area(id_asignatura)
+    error = None
+    exito = None
+
+    if request.method == "POST":
+        polygon_text = request.form.get("polygon", "").strip()
+        if not polygon_text:
+            error = "El polígono no puede estar vacío."
+        else:
+            try:
+                upsert_asignatura_poligono(id_asignatura, polygon_text)
+                exito = "Polígono actualizado correctamente."
+                area_actual = polygon_text
+            except Exception as e:
+                error = f"Error al guardar el polígono: {str(e)}"
+
+    return render_template(
+        "editarPoligono.html",
+        asignatura=asignatura,
+        area_actual=area_actual,
+        error=error,
+        exito=exito
     )
 
 @asignaturas_bp.route("/nuevo", methods=["GET", "POST"])
 def new_asignatura():
     profesores = get_profesores()
-    print(profesores)
     if request.method == "POST":
         nombres = {
         "es" : request.form["nombre_es"],

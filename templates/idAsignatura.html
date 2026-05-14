@@ -14,6 +14,12 @@
         <li>No hay alumnos matriculados</li>
     {% endfor %}
     </ul>
+
+    <div style="color: #ffffff; margin-top: 1rem;">
+      <strong>Polígono del aula:</strong>
+      <p>{{ area or 'No hay polígono registrado para esta asignatura' }}</p>
+      <a href="{{ url_for('asignaturas.editar_poligono', id_asignatura=asignatura.id_asignatura) }}">Editar polígono</a>
+    </div>
 {% else %}
     <p style="color: #ffffff;">No existe ese asignatura.</p>
 {% endif %}

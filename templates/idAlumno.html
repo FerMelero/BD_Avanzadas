@@ -11,6 +11,7 @@
       <span><strong>DNI:</strong> {{ alumno.dni }}</span> | 
       <span><strong>Nacimiento:</strong> {{ alumno.fecha_nacimiento }}</span>
       <span><strong>Dinero:</strong> {{ alumno.dinero }}</span>
+      <span><strong>Ubicación:</strong> {{ ubicacion or 'Sin ubicación definida' }}</span>
     </div>
   </li>
 </ul>
@@ -24,6 +25,8 @@
 {% endfor %}
 
 </ul>
+<a href="{{ url_for('alumnos.editar_ubicacion', id_alumno=alumno.id_alumno) }}">Editar ubicación</a> |
+<a href="{{ url_for('alumnos.viajar_alumno', id_alumno=alumno.id_alumno) }}">Viajar a un aula</a> |
 <a href="{{ url_for('alumnos.eliminar_alumno', id_alumno=alumno.id_alumno) }}">Eliminar alumno</a>
 
 {% else %}

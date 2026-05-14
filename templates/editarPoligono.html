@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Editar Polígono del Aula{% endblock %}
+
+{% block content %}
+<h2>Editar polígono del aula</h2>
+{% if asignatura %}
+  <p><strong>Asignatura:</strong> {{ asignatura.nombre_asignatura.es }} ({{ asignatura.nombre_asignatura.en }})</p>
+
+  {% if error %}
+    <p style="color: red;">{{ error }}</p>
+  {% endif %}
+
+  {% if exito %}
+    <p style="color: green;">{{ exito }}</p>
+  {% endif %}
+
+  <form method="post">
+    <label for="polygon">Polígono (formato WKT):</label><br>
+    <textarea 
+      id="polygon" 
+      name="polygon" 
+      rows="6" 
+      style="width: 100%; font-family: monospace;"
+      placeholder="Ejemplo: ((-3.7050,40.4182),(-3.7030,40.4182),(-3.7030,40.4170),(-3.7050,40.4170),(-3.7050,40.4182))"
+    >{{ area_actual or '' }}</textarea>
+
+    <div style="margin-top: 1rem;">
+      <button type="submit">Guardar Polígono</button>
+      <a href="{{ url_for('asignaturas.view_asignatura', id_asignatura=asignatura.id_asignatura) }}">Cancelar</a>
+    </div>
+  </form>
+
+{% else %}
+  <p>Asignatura no encontrada.</p>
+{% endif %}
+{% endblock %}

@@ -14,6 +14,7 @@ DDL = (
 
     '''CREATE EXTENSION IF NOT EXISTS pg_trgm SCHEMA public;''',
     '''CREATE EXTENSION IF NOT EXISTS unaccent SCHEMA public;''',
+    '''CREATE EXTENSION IF NOT EXISTS postgis SCHEMA public;''',
 
     '''CREATE OR REPLACE FUNCTION unaccent_immutable(text)
     RETURNS text AS $$
@@ -50,6 +51,19 @@ DDL = (
         id_asignatura INTEGER NOT NULL REFERENCES asignaturas(id_asignatura) ON DELETE CASCADE,
         PRIMARY KEY (id_alumno, id_asignatura)
     );''',
+
+    '''CREATE TABLE alumno_ubicaciones (
+        id_alumno INTEGER PRIMARY KEY REFERENCES alumnos(id_alumno) ON DELETE CASCADE,
+        ubicacion geometry(Point,4326)
+    );''',
+
+    '''CREATE TABLE asignatura_poligonos (
+        id_asignatura INTEGER PRIMARY KEY REFERENCES asignaturas(id_asignatura) ON DELETE CASCADE,
+        area geometry(Polygon,4326)
+    );''',
+
+    '''CREATE INDEX idx_alumno_ubicaciones_geom ON alumno_ubicaciones USING GIST (ubicacion);''',
+    '''CREATE INDEX idx_asignatura_poligonos_geom ON asignatura_poligonos USING GIST (area);''',
 
     '''CREATE TABLE audit_asignaturas(
         operacion CHAR(1),

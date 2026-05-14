@@ -3,7 +3,20 @@ from __future__ import annotations
 
 from flask import Blueprint, Response, abort, render_template, request, redirect, url_for
 
-from models.db import get_alumnos, get_alumno_by_id, get_asignaturas_by_alumno, crear_alumno, view_audit_alumnos, modificar_alumno, delete_alumno, search_alumnos
+from models.db import (
+    get_alumnos,
+    get_alumno_by_id,
+    get_asignaturas_by_alumno,
+    crear_alumno,
+    view_audit_alumnos,
+    modificar_alumno,
+    delete_alumno,
+    search_alumnos,
+    get_alumno_ubicacion,
+    get_asignaturas_con_area,
+    viajar_alumno_a_aula,
+    upsert_alumno_ubicacion,
+)
 
 
 alumnos_bp = Blueprint("alumnos", __name__, url_prefix="/alumnos")
@@ -82,10 +95,71 @@ def view_alumno(id_alumno):
     print("ID recibido:", id_alumno) # depuración
     alumno = get_alumno_by_id(id_alumno) # pasar un ID a la función y pasarlo para render
     asignatura = get_asignaturas_by_alumno(id_alumno)
+    ubicacion = get_alumno_ubicacion(id_alumno)
     return render_template(
         "idAlumno.html",
         alumno=alumno,
-        asignaturas = asignatura
+        asignaturas=asignatura,
+        ubicacion=ubicacion
+    )
+
+@alumnos_bp.route("/<int:id_alumno>/viajar", methods=["GET", "POST"])
+def viajar_alumno(id_alumno):
+    alumno = get_alumno_by_id(id_alumno)
+    if not alumno:
+        return "Alumno no encontrado", 404
+
+    ubicacion = get_alumno_ubicacion(id_alumno)
+    asignaturas = get_asignaturas_con_area()
+    error = None
+
+    if request.method == "POST":
+        try:
+            id_asignatura = int(request.form["id_asignatura"])
+        except (ValueError, KeyError):
+            error = "Debe seleccionar una asignatura válida."
+        else:
+            resultado = viajar_alumno_a_aula(id_alumno, id_asignatura)
+            if resultado is True:
+                return redirect(url_for("alumnos.view_alumno", id_alumno=id_alumno))
+            error = resultado
+
+    return render_template(
+        "viajarAlumno.html",
+        alumno=alumno,
+        ubicacion=ubicacion,
+        asignaturas=asignaturas,
+        error=error
+    )
+
+@alumnos_bp.route("/<int:id_alumno>/editar-ubicacion", methods=["GET", "POST"])
+def editar_ubicacion(id_alumno):
+    alumno = get_alumno_by_id(id_alumno)
+    if not alumno:
+        return "Alumno no encontrado", 404
+
+    ubicacion_actual = get_alumno_ubicacion(id_alumno)
+    error = None
+    exito = None
+
+    if request.method == "POST":
+        point_text = request.form.get("point", "").strip()
+        if not point_text:
+            error = "La ubicación no puede estar vacía."
+        else:
+            try:
+                upsert_alumno_ubicacion(id_alumno, point_text)
+                exito = "Ubicación actualizada correctamente."
+                ubicacion_actual = point_text
+            except Exception as e:
+                error = f"Error al guardar la ubicación: {str(e)}"
+
+    return render_template(
+        "editarUbicacion.html",
+        alumno=alumno,
+        ubicacion_actual=ubicacion_actual,
+        error=error,
+        exito=exito
     )
 
 @alumnos_bp.route("/nuevo", methods=["GET", "POST"])

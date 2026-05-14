@@ -4,7 +4,6 @@
 {% block content %}
   <h1>Relación Alumnos - Asignaturas</h1>
   
-  <!-- Formulario de búsqueda (Tema 12: Búsquedas en SQL) -->
   <fieldset style="margin-bottom: 20px; padding: 10px; border: 1px solid #ccc;">
     <legend>Filtros de Búsqueda</legend>
     <form method="GET" action="{{ url_for('matriculas.list_') }}">
@@ -49,7 +48,6 @@
     </tbody>
   </table>
   
-  <!-- Paginación -->
   {% if matriculas %}
   <div style="margin-top: 15px; text-align: center;">
     {% if page > 1 %}

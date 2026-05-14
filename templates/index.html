@@ -36,16 +36,9 @@
 
     <hr>
 
-    <!-- OTROS -->
     <li><strong>Otros</strong></li>
     <li><a href="{{ url_for('matriculas.demo_rollback') }}">Demo Rollback</a></li>
 
     <hr>
-
-    <li><strong>Autenticación</strong></li>
-    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
-    <form action="{{ url_for('auth.logout') }}" method="post" style="display:inline;">
-      <button type="submit">Logout</button>
-    </form>
   </ul>
 {% endblock %}

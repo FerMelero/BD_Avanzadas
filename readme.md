@@ -1,144 +1,171 @@
-# Proyecto Escuela: Pipeline Airflow y Aplicación MVC
+# Aplicacion Web Flask - Gestion Academica
 
-Este proyecto implementa un sistema integral de gestión educativa bajo el patrón Modelo-Vista-Controlador (MVC), automatizado mediante flujos de datos (DAGs) en Apache Airflow para la población de datos en PostgreSQL y SQLite.
-
-El sistema destaca por su enfoque en **Bases de Datos Avanzadas**, utilizando transacciones seguras con bloqueos de fila y un sistema de auditoría basado en disparadores (triggers).
+Aplicacion web desarrollada con Flask y PostgreSQL para la gestion de alumnos, profesores, asignaturas y matriculas. Incluye soporte para datos geograficos mediante PostGIS, busqueda difusa con `pg_trgm`, auditoria de cambios mediante triggers y gestion de transacciones.
 
 ---
 
-## 1. Estructura de la Base de Datos
+## Requisitos previos
 
-El sistema utiliza un modelo relacional para gestionar la información académica. Las relaciones están diseñadas para mantener la integridad referencial mediante eliminaciones en cascada.
-
-### 1.1. Tabla: Profesores
-| Columna | Tipo de dato | Restricciones |
-| :--- | :--- | :--- |
-| `id_profesor` | SERIAL | PRIMARY KEY |
-| `nombre` | VARCHAR(100) | NOT NULL |
-| `apellido` | VARCHAR(100) | NOT NULL |
-| `fecha_nacimiento` | DATE | NOT NULL |
-| `dni` | VARCHAR(20) | NOT NULL, UNIQUE |
-
-### 1.2. Tabla: Alumnos
-| Columna | Tipo de dato | Restricciones |
-| :--- | :--- | :--- |
-| `id_alumno` | SERIAL | PRIMARY KEY |
-| `nombre` | VARCHAR(100) | NOT NULL |
-| `apellido` | VARCHAR(100) | NOT NULL |
-| `fecha_nacimiento` | DATE | NOT NULL |
-| `dni` | VARCHAR(20) | NOT NULL, UNIQUE |
-| `dinero` | FLOAT | NOT NULL (Saldo para matrículas) |
-
-### 1.3. Tabla: Asignaturas
-| Columna | Tipo de dato | Restricciones |
-| :--- | :--- | :--- |
-| `id_asignatura` | SERIAL | PRIMARY KEY |
-| `nombre_asignatura` | VARCHAR(100) | NOT NULL |
-| `id_profesor` | INTEGER | FK → `profesores(id_profesor)` (ON DELETE CASCADE) |
-| `capacidad_max` | INTEGER | NOT NULL (Límite de alumnos) |
-| `precio` | FLOAT | NOT NULL |
-
-### 1.4. Tabla: Matrículas (Relación N:M)
-| Columna | Tipo de dato | Restricciones |
-| :--- | :--- | :--- |
-| `id_alumno` | INTEGER | FK → `alumnos(id_alumno)` (ON DELETE CASCADE) |
-| `id_asignatura` | INTEGER | FK → `asignaturas(id_asignatura)` (ON DELETE CASCADE) |
-| **PK Compuesta** | | `PRIMARY KEY (id_alumno, id_asignatura)` |
+- Python 3.10 o superior
+- PostgreSQL con las extensiones `pg_trgm`, `unaccent` y `postgis`
+- pip
 
 ---
 
-## 2. Lógica Avanzada de Base de Datos
+## Instalacion
 
-### 2.1. Sistema de Auditoría (Triggers)
-Se han implementado tablas de auditoría (`audit_profesores`, `audit_alumnos`, `audit_asignaturas`) y funciones en **PL/pgSQL** para rastrear cada operación (INSERT, UPDATE, DELETE). Esto garantiza que, incluso si se elimina un registro, quede constancia de quién realizó la acción y qué datos existían previamente.
+### 1. Clonar el repositorio
 
-### 2.2. Matriculación Transaccional
-El proceso de inscripción de alumnos no es una simple inserción; se ha diseñado como una **transacción ACID** que incluye:
-1. **Bloqueo de Filas (`FOR UPDATE`)**: Evita condiciones de carrera en el saldo y cupos.
-2. **Validación de Cupo**: Verifica que existan plazas disponibles.
-3. **Validación de Saldo**: Comprueba que el alumno tenga dinero suficiente.
-4. **Atomicidad**: Se descuenta el dinero y se crea la matrícula simultáneamente; si algo falla, se aplica un `ROLLBACK`.
+```bash
+git clone <url-del-repositorio>
+cd <nombre-del-proyecto>
+```
 
----
+### 2. Crear el entorno virtual
 
-## 3. Mapa de Rutas de la Aplicación (Endpoints)
+**Windows:**
+```bash
+python -m venv venv
+venv\Scripts\activate
+```
 
-| Endpoint | Métodos | Regla (URL) | Descripción |
-| :--- | :--- | :--- | :--- |
-| **Main** | | | |
-| `main.index` | GET | `/` | Página de inicio. |
-| **Auth** | | | |
-| `auth.login` | GET, POST | `/auth/login` | Acceso al sistema. |
-| `auth.logout` | POST | `/auth/logout` | Salida del sistema. |
-| **Alumnos** | | | |
-| `alumnos.list_` | GET | `/alumnos` | Listado y saldos. |
-| `alumnos.new_alumno` | GET, POST | `/alumnos/nuevo` | Registro de alumno. |
-| `alumnos.edit_alumno` | GET, POST | `/alumnos/modificar/<id>` | Actualizar datos/dinero. |
-| `alumnos.viajar_alumno` | GET, POST | `/alumnos/<id>/viajar` | Viajar un alumno a un aula. |
-| `alumnos.editar_ubicacion` | GET, POST | `/alumnos/<id>/editar-ubicacion` | Editar ubicación POINT del alumno. |
-| `alumnos.auditoria_alumnos` | GET | `/alumnos/auditoria` | Log de cambios. |
-| **Profesores** | | | |
-| `profesores.list_` | GET | `/profesores` | Listado de docentes. |
-| `profesores.new_profesor` | GET, POST | `/profesores/nuevo` | Registro de docente. |
-| `profesores.auditoria_profesores` | GET | `/profesores/auditoria` | Log de cambios. |
-| **Asignaturas** | | | |
-| `asignaturas.list_` | GET | `/asignaturas` | Catálogo y precios. |
-| `asignaturas.new_asignatura` | GET, POST | `/asignaturas/nuevo` | Crear asignatura. |
-| `asignaturas.auditoria_asignaturas` | GET | `/asignaturas/auditoria` | Historial de precios/cupos. |
-| `asignaturas.editar_poligono` | GET, POST | `/asignaturas/<id>/editar-poligono` | Editar polígono POLYGON del aula. |
-| **Matrículas** | | | |
-| `matriculas.list_` | GET | `/matriculas` | Ver inscripciones actuales. |
-| `matriculas.matricular_alumno` | GET, POST | `/matriculas/nuevo` | **Proceso Transaccional**. |
-| `matriculas.demo_rollback` | GET | `/matriculas/demo-rollback` | Test de integridad. |
+**Linux / macOS:**
+```bash
+python -m venv venv
+source venv/bin/activate
+```
 
----
+### 3. Instalar dependencias
 
-> **Nota GIS**: La funcionalidad GIS usa PostGIS. Las nuevas tablas `alumno_ubicaciones` y `asignatura_poligonos` ahora usan tipos `geometry`.
-> Después de crear la base de datos y registrar alumnos/asignaturas, ejecute `python3 -m tema_14.tema14_gis` para asignar datos GIS automáticamente.
-> 
-> **Funcionalidades GIS:**
-> - **Viajar**: Mueve un alumno al centroide del aula de una asignatura
-> - **Editar ubicaciones**: Desde `/alumnos/<id>/editar-ubicacion`
-> - **Editar polígonos**: Desde `/asignaturas/<id>/editar-poligono`
-> - Solo asignaturas con polígonos aparecen en el dropdown de "Viajar"
+```bash
+pip install -r requirements.txt
+```
 
-## 4. Requisitos Previos
+### 4. Configurar la base de datos
 
-- **Lenguaje:** Python v3.12.3
-- **Base de Datos:** PostgreSQL v16.13 y SQLite
-- **Sistema Operativo:** Ubuntu 24.04 LTS / Windows 10
+Crea un archivo `database.ini` con las credenciales de tu base de datos PostgreSQL. Despues ejecuta el script de inicializacion `create_tables.py`para crear las tablas, indices, triggers y vistas:
+
+```bash
+python create_tables.py
+```
+
+### 5. Ejecutar la aplicacion
+
+```bash
+flask run
+```
 
 ---
 
-## 5. Estructura del Proyecto
+## Estructura de la base de datos
 
-### 5.1. Aplicación MVC
-- `app.py`: Punto de entrada de Flask.
-- `models/`: Lógica de acceso a datos y entidades.
-- `routes/`: Definición de Blueprints y controladores.
-- `templates/`: Vistas HTML (Jinja2).
+El esquema esta compuesto por las siguientes tablas principales y tablas de auditoria:
 
-### 5.2. Airflow (Orquestación)
-- `mi_primer_dag.py`: DAG principal de orquestación.
-- `dag_sqlite.py`: Gestión de datos en SQLite.
-- `insert_data.py`: Scripts de carga masiva automatizada.
+### Tablas principales
+
+| Tabla | Descripcion |
+|---|---|
+| `profesores` | Datos personales de los profesores (nombre, apellido, fecha de nacimiento, DNI) |
+| `alumnos` | Datos personales de los alumnos, incluyendo saldo (`dinero`) |
+| `asignaturas` | Asignaturas con nombre multiidioma en JSONB, profesor asignado, capacidad maxima y precio |
+| `matriculas` | Relacion muchos a muchos entre alumnos y asignaturas |
+| `alumno_ubicaciones` | Ubicacion geografica de cada alumno (punto PostGIS, SRID 4326) |
+| `asignatura_poligonos` | Area geografica asociada a cada asignatura (poligono PostGIS, SRID 4326) |
+
+### Tablas de auditoria
+
+| Tabla | Descripcion |
+|---|---|
+| `audit_profesores` | Registro de INSERT, UPDATE y DELETE sobre `profesores` |
+| `audit_alumnos` | Registro de INSERT, UPDATE y DELETE sobre `alumnos` |
+| `audit_asignaturas` | Registro de INSERT, UPDATE y DELETE sobre `asignaturas` |
+
+Cada tabla de auditoria almacena la operacion realizada (`I`, `U`, `D`), la marca de tiempo, el usuario de base de datos y los valores afectados.
+
+### Vistas
+
+| Vista | Descripcion |
+|---|---|
+| `vista_alumnos_profesores_asignaturas` | Cruza matriculas, alumnos, asignaturas y profesores para mostrar nombre del alumno, nombre del profesor y nombre de la asignatura en espanol |
+
+### Indices destacados
+
+- Indice GIN sobre `asignaturas.nombres_multi` para busquedas JSONB.
+- Indices GIST con `pg_trgm` sobre los nombres en espanol e ingles de las asignaturas para busqueda difusa sin tildes.
+- Indices GIST sobre las geometrias de ubicaciones y poligonos para consultas espaciales.
 
 ---
 
-## 6. Configuración y Despliegue
+## Rutas de la aplicacion
 
-### Airflow
-1. Instalar dependencias: `pip install -r requirements_airflow.txt`
-2. Configurar `.env` con credenciales de PostgreSQL.
-3. Iniciar: `airflow standalone`
+### Autenticacion (`/auth`)
 
-### Aplicación MVC
-1. Instalar dependencias: `pip install -r requirements_mvc.txt`
-2. Ejecutar: `flask run`
-3. Acceso: `http://localhost:5000`
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET, POST | `/auth/login` | Formulario de inicio de sesion |
+| POST | `/auth/logout` | Cierre de sesion |
+
+### Pagina principal
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/` | Pagina de inicio |
+
+### Alumnos (`/alumnos`)
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/alumnos` | Listado de todos los alumnos |
+| GET, POST | `/alumnos/nuevo` | Crear un nuevo alumno |
+| GET | `/alumnos/<id_alumno>` | Ver detalle de un alumno |
+| GET, POST | `/alumnos/modificar/<id_alumno>` | Editar datos de un alumno |
+| GET, POST | `/alumnos/eliminar/<id_alumno>` | Eliminar un alumno |
+| GET, POST | `/alumnos/<id_alumno>/editar-ubicacion` | Asignar o modificar la ubicacion geografica del alumno |
+| GET, POST | `/alumnos/<id_alumno>/viajar` | Simular el desplazamiento del alumno a una nueva ubicacion |
+| GET | `/alumnos/auditoria` | Consultar el historial de auditoria de alumnos |
+
+### Profesores (`/profesores`)
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/profesores` | Listado de todos los profesores |
+| GET, POST | `/profesores/nuevo` | Crear un nuevo profesor |
+| GET | `/profesores/<id_profesor>` | Ver detalle de un profesor |
+| GET, POST | `/profesores/modificar/<id_profesor>` | Editar datos de un profesor |
+| GET, POST | `/profesores/eliminar/<id_profesor>` | Eliminar un profesor |
+| GET | `/profesores/asignaturasCaros/<id_profesor>` | Ver las asignaturas mas caras asociadas a un profesor |
+| GET | `/profesores/auditoria` | Consultar el historial de auditoria de profesores |
+
+### Asignaturas (`/asignaturas`)
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/asignaturas` | Listado de todas las asignaturas |
+| GET, POST | `/asignaturas/nuevo` | Crear una nueva asignatura |
+| GET | `/asignaturas/<id_asignatura>` | Ver detalle de una asignatura |
+| GET, POST | `/asignaturas/modificar/<id_asignatura>` | Editar datos de una asignatura |
+| GET, POST | `/asignaturas/eliminar/<id_asignatura>` | Eliminar una asignatura |
+| GET, POST | `/asignaturas/<id_asignatura>/editar-poligono` | Asignar o modificar el area geografica de la asignatura |
+| GET | `/asignaturas/dinero` | Consultar el balance economico relacionado con asignaturas |
+| GET | `/asignaturas/estadisticas-precios` | Ver estadisticas de precios de las asignaturas |
+| GET | `/asignaturas/reporte-capacidades` | Reporte de ocupacion y capacidad maxima por asignatura |
+| GET | `/asignaturas/auditoria` | Consultar el historial de auditoria de asignaturas |
+
+### Matriculas (`/matriculas`)
+
+| Metodo | Ruta | Descripcion |
+|---|---|---|
+| GET | `/matriculas` | Listado de todas las matriculas |
+| GET, POST | `/matriculas/nuevo` | Matricular un alumno en una asignatura |
+| GET | `/matriculas/vista` | Vista cruzada de matriculas con nombres de alumnos, profesores y asignaturas |
+| GET | `/matriculas/demo-rollback` | Demostracion de rollback de transaccion |
 
 ---
 
-## 7. Credenciales y Acceso
-- **Base de Datos:** Usuario definido en `database.ini` y `.env`.
-- **App Web:** El sistema permite el acceso mediante correos generados por el DAG de carga masiva.
+## Caracteristicas tecnicas
+
+- **Auditoria automatica**: triggers en PostgreSQL registran cada INSERT, UPDATE y DELETE sobre las tablas principales.
+- **Datos geograficos**: soporte PostGIS para almacenar y consultar ubicaciones de alumnos y areas de asignaturas.
+- **Busqueda difusa**: indices GIST con `pg_trgm` y `unaccent` permiten busquedas aproximadas insensibles a tildes.
+- **Nombres multiidioma**: la columna `nombres_multi` de asignaturas es de tipo JSONB, permitiendo almacenar el nombre en multiples idiomas (por ejemplo, `{"es": "Matematicas", "en": "Mathematics"}`).
+- **Gestion de transacciones**: se incluye una ruta de demostracion de rollback para ilustrar el control de transacciones en PostgreSQL.

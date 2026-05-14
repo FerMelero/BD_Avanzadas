@@ -26,7 +26,6 @@
     <option value="" style="color: #000000;">-- Selecciona un profesor --</option>
 
     {% for profesor in profesores %}
-        {# CORRECCIÓN: profesor en singular (profesor.id_profesor) #}
         <option value="{{ profesor.id_profesor }}" style="color: #000000;">
             {{ profesor.nombre }} {{ profesor.apellido }}
         </option>
